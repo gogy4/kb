@@ -3,6 +3,8 @@ package com.example.demo;
 import com.example.demo.application.dto.CaseBaseInfo;
 import com.example.demo.application.dto.SkinBaseDto;
 import com.example.demo.application.service.CaseDropService;
+import com.example.demo.application.service.UpgradeChanceService;
+import com.example.demo.application.service.UpgradeService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -10,10 +12,13 @@ import org.springframework.boot.test.context.SpringBootTest;
 import java.util.List;
 
 @SpringBootTest
-public class CaseDropServiceTest {
+public class DropServiceTest {
 
     @Autowired
     private CaseDropService caseDropService;
+
+    @Autowired
+    private UpgradeChanceService upgradeChanceService;
 
     @Test
     public void testDropRandomSkin() {
@@ -58,6 +63,22 @@ public class CaseDropServiceTest {
         System.out.println("Skin A выпал " + skinACount + " раз из " + trials);
         System.out.println("Skin B выпал " + skinBCount + " раз из " + trials);
         System.out.println("Skin C выпал " + skinCCount + " раз из " + trials);
+    }
 
+    @Test
+    public void testUpgradeRandomSkin() {
+        var skinA = SkinBaseDto.builder()
+                .id(1L)
+                .price(120)
+                .build();
+
+        var skinB = SkinBaseDto.builder()
+                .id(2L)
+                .price(38)
+                .build();
+
+        var chance = upgradeChanceService.performUpgrade(skinB, skinA, 0.5);
+        System.out.println("Skin B " + chance.isSuccess() + " в Skin A с шансом " + chance.getRolledChance() +
+                "\n БЫЛ ШАНС " + chance.getUpgradeChance());
     }
 }

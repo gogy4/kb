@@ -2,7 +2,6 @@ package com.example.demo.application.service;
 
 import com.example.demo.application.dto.CaseBaseInfo;
 import com.example.demo.application.dto.SkinBaseDto;
-import com.example.demo.infrastructure.repository.CaseRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 

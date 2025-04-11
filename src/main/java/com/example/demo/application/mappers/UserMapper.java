@@ -7,7 +7,7 @@ public class UserMapper {
     public static UserWinningChanceResponse toWinningChangeResponse(User user) {
         return UserWinningChanceResponse.builder()
                 .id(user.getId())
-                .winningChange(user.getWinningChange())
+                .winningChange(user.getWinningChance())
                 .winningBalance(user.getWinningBalance())
                 .build();
     }
