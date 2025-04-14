@@ -17,6 +17,7 @@ public class User {
     private long id;
     private String tradeUrl;
     private String userName;
+    private String avatarUrl;
     private double winningChance;
     private double balance;
     //Может быть и отрицательным, если не везуха
@@ -28,4 +29,12 @@ public class User {
             inverseJoinColumns = @JoinColumn(name="skin_id")
     )
     private List<Skin> skins;
+
+    public void addSkin(Skin skin) {
+        skins.add(skin);
+    }
+
+    public void removeSkin(Skin skin) {
+        skins.remove(skin);
+    }
 }

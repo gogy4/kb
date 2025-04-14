@@ -6,6 +6,7 @@ import com.example.demo.application.mappers.SkinMapper;
 import com.example.demo.domain.models.Skin;
 import com.example.demo.infrastructure.repository.SkinRepository;
 import com.example.demo.infrastructure.repository.UserRepository;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -18,6 +19,7 @@ public class UpgradeService {
     private final SkinRepository skinRepository;
     private final UpgradeChanceService upgradeChanceService;
     private final UserRepository userRepository;
+    private final SkinMapper skinMapper;
 
     public List<Skin> getAvailableSkins(SkinBaseDto skinBaseDto) {
         return skinRepository.finAvailableSkins(skinBaseDto.getPrice());
@@ -27,16 +29,16 @@ public class UpgradeService {
         return skinRepository.finAvailableSkins(skinBaseDto.getPrice(), multiplier);
     }
 
+    @Transactional
     public UpgradeDto upgradeSkin(Skin currentSkin, Skin targetSkin, long userId) {
-        var currentSkinBase = SkinMapper.toSkinBase(currentSkin);
-        var targetSkinBase = SkinMapper.toSkinBase(targetSkin);
+        var currentSkinBase = skinMapper.toSkinBase(currentSkin);
+        var targetSkinBase = skinMapper.toSkinBase(targetSkin);
         var user = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("User not found"));
         var upgradeDto = upgradeChanceService.performUpgrade(currentSkinBase, targetSkinBase, user.getWinningChance());
-        var skins = user.getSkins();
-        skins.removeIf(skin -> skin.getId() == currentSkinBase.getId());
+        user.removeSkin(currentSkin);
         if (upgradeDto.isSuccess()) {
-            skins.add(targetSkin);
+            user.addSkin(targetSkin);
         }
         userRepository.save(user);
         return upgradeDto;

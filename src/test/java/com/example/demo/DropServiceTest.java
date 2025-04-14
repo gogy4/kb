@@ -4,7 +4,6 @@ import com.example.demo.application.dto.CaseBaseInfo;
 import com.example.demo.application.dto.SkinBaseDto;
 import com.example.demo.application.service.CaseDropService;
 import com.example.demo.application.service.UpgradeChanceService;
-import com.example.demo.application.service.UpgradeService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -49,7 +48,7 @@ public class DropServiceTest {
         var skinCCount = 0;
 
         for (var i = 0; i < trials; i++) {
-            var droppedSkin = caseDropService.dropSkin(caseBaseInfo, 0.75);
+            var droppedSkin = caseDropService.getDroppedSkin(caseBaseInfo, 0.75);
             if (droppedSkin.getId() == 1L) {
                 skinACount++;
             } else if (droppedSkin.getId() == 2L) {
