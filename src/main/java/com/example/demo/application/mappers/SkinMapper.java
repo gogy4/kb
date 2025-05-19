@@ -2,7 +2,7 @@ package com.example.demo.application.mappers;
 
 import com.example.demo.application.dto.SkinBaseDto;
 import com.example.demo.application.dto.SkinDto;
-import com.example.demo.domain.models.SkinEntity;
+import com.example.demo.domain.entities.SkinEntity;
 import com.example.demo.infrastructure.repository.SkinRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;

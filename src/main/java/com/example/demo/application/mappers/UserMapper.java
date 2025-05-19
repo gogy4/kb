@@ -2,7 +2,7 @@ package com.example.demo.application.mappers;
 
 import com.example.demo.application.dto.UserDto;
 import com.example.demo.application.dto.UserWinningChanceResponse;
-import com.example.demo.domain.models.UserEntity;
+import com.example.demo.domain.entities.UserEntity;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 

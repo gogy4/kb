@@ -3,7 +3,7 @@ package com.example.demo.application.service;
 import com.example.demo.application.dto.SkinBaseDto;
 import com.example.demo.application.dto.UpgradeDto;
 import com.example.demo.application.mappers.SkinMapper;
-import com.example.demo.domain.models.SkinEntity;
+import com.example.demo.domain.entities.SkinEntity;
 import com.example.demo.infrastructure.repository.SkinRepository;
 import com.example.demo.infrastructure.repository.UserRepository;
 import jakarta.transaction.Transactional;

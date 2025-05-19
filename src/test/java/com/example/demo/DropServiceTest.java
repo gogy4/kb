@@ -1,6 +1,6 @@
 package com.example.demo;
 
-import com.example.demo.application.dto.CaseBaseInfo;
+import com.example.demo.application.dto.CaseBaseDto;
 import com.example.demo.application.dto.SkinBaseDto;
 import com.example.demo.application.service.CaseDropService;
 import com.example.demo.application.service.UpgradeChanceService;
@@ -36,7 +36,7 @@ public class DropServiceTest {
                 .price(120.0)
                 .build();
 
-        var caseBaseInfo = CaseBaseInfo.builder()
+        var caseBaseInfo = CaseBaseDto.builder()
                 .id(1L)
                 .price(100.0)
                 .skins(List.of(skinA, skinB, skinC))

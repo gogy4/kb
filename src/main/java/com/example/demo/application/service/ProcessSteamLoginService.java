@@ -2,7 +2,7 @@ package com.example.demo.application.service;
 
 import com.example.demo.application.dto.UserDto;
 import com.example.demo.application.mappers.UserMapper;
-import com.example.demo.domain.models.UserEntity;
+import com.example.demo.domain.entities.UserEntity;
 import com.example.demo.infrastructure.repository.UserRepository;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
