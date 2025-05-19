@@ -2,11 +2,9 @@ package com.example.demo.application.service;
 
 import com.example.demo.application.dto.SkinBaseDto;
 import com.example.demo.application.dto.UpgradeDto;
-import com.example.demo.domain.models.Skin;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
-import java.util.Random;
 import java.util.concurrent.ThreadLocalRandom;
 
 @Service

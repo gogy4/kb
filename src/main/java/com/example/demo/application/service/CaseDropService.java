@@ -1,11 +1,9 @@
 package com.example.demo.application.service;
 
 import com.example.demo.application.dto.CaseBaseInfo;
-import com.example.demo.application.dto.SkinBaseDto;
 import com.example.demo.application.dto.SkinDto;
 import com.example.demo.application.mappers.SkinMapper;
-import com.example.demo.domain.models.Skin;
-import com.example.demo.infrastructure.repository.SkinRepository;
+import com.example.demo.domain.models.SkinEntity;
 import com.example.demo.infrastructure.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -21,7 +19,7 @@ public class CaseDropService {
     private final Random random = new Random();
 
     //временно будет приватным для тестов
-    public Skin getDroppedSkin(CaseBaseInfo caseBaseInfo, double winningChance){
+    public SkinEntity getDroppedSkin(CaseBaseInfo caseBaseInfo, double winningChance){
         var dropChances = caseDropChanceService.calculateDropChance(caseBaseInfo, winningChance);
         var roll = random.nextDouble();
         var cumulativeChance = 0.0;

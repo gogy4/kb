@@ -3,6 +3,7 @@ package com.example.demo.domain.models;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Data
@@ -10,10 +11,8 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity
-@Table(name = "USER")
-public class User {
+public class UserEntity {
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
     private long id;
     private String tradeUrl;
     private String userName;
@@ -28,13 +27,22 @@ public class User {
             joinColumns = @JoinColumn(name="user_id"),
             inverseJoinColumns = @JoinColumn(name="skin_id")
     )
-    private List<Skin> skins;
 
-    public void addSkin(Skin skin) {
+    private List<SkinEntity> skins;
+
+    public UserEntity(long id){
+        this.id = id;
+        winningBalance = 0;
+        winningChance = 50;
+        balance = 0;
+        skins = new ArrayList<>();
+    }
+
+    public void addSkin(SkinEntity skin) {
         skins.add(skin);
     }
 
-    public void removeSkin(Skin skin) {
+    public void removeSkin(SkinEntity skin) {
         skins.remove(skin);
     }
 }

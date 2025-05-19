@@ -11,8 +11,7 @@ import lombok.NoArgsConstructor;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-@Table(name = "SKIN")
-public class Skin {
+public class SkinEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     private long id;

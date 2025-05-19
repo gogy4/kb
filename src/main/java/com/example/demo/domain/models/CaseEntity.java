@@ -13,8 +13,7 @@ import java.util.List;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@Table(name = "CASE")
-public class Case {
+public class CaseEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Long id;
@@ -27,5 +26,5 @@ public class Case {
             joinColumns = @JoinColumn(name="case_id"),
             inverseJoinColumns = @JoinColumn(name="skin_id")
     )
-    private List<Skin> skins;
+    private List<SkinEntity> skins;
 }

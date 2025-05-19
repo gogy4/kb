@@ -1,9 +1,8 @@
 package com.example.demo.application.mappers;
 
-import com.example.demo.application.dto.SkinDto;
 import com.example.demo.application.dto.UserDto;
 import com.example.demo.application.dto.UserWinningChanceResponse;
-import com.example.demo.domain.models.User;
+import com.example.demo.domain.models.UserEntity;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
@@ -13,7 +12,7 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class UserMapper {
     private final SkinMapper skinMapper;
-    public static UserWinningChanceResponse toWinningChangeResponse(User user) {
+    public static UserWinningChanceResponse toWinningChangeResponse(UserEntity user) {
         return UserWinningChanceResponse.builder()
                 .id(user.getId())
                 .winningChange(user.getWinningChance())
@@ -21,7 +20,7 @@ public class UserMapper {
                 .build();
     }
 
-    public UserDto toUserDto(User user) {
+    public UserDto toUserDto(UserEntity user) {
         return UserDto.builder()
                 .id(user.getId())
                 .name(user.getUserName())
