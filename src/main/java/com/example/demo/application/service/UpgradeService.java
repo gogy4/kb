@@ -1,6 +1,7 @@
 package com.example.demo.application.service;
 
 import com.example.demo.application.dto.SkinBaseDto;
+import com.example.demo.application.dto.SkinDto;
 import com.example.demo.application.dto.UpgradeDto;
 import com.example.demo.application.mappers.SkinMapper;
 import com.example.demo.domain.entities.SkinEntity;

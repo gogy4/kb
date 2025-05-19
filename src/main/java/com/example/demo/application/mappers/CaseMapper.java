@@ -2,8 +2,6 @@ package com.example.demo.application.mappers;
 
 import com.example.demo.application.dto.CaseBaseDto;
 import com.example.demo.domain.entities.CaseEntity;
-import com.example.demo.infrastructure.repository.CaseRepository;
-import com.example.demo.infrastructure.repository.SkinRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
@@ -20,6 +18,7 @@ public class CaseMapper {
                 .skins(caseEntity.getSkins().stream()
                         .map(skinMapper::toSkinBase)
                         .collect(Collectors.toList()))
+                .imageUrl(caseEntity.getImageUrl())
                 .build();
     }
 }

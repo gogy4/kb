@@ -11,4 +11,5 @@ public class CaseBaseDto {
     private long id;
     private double price;
     private List<SkinBaseDto> skins;
+    private String imageUrl;
 }
