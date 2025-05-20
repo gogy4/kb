@@ -1,6 +1,7 @@
 ﻿<!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
+<html lang="ru">
 <head>
+    <meta charset="UTF-8" />
     <title>Апгрейды</title>
     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500&display=swap" rel="stylesheet" />
     <style>
@@ -28,99 +29,120 @@
         header a:hover {
             background-color: #333;
         }
-
         .container {
-            max-width: 1000px;
+            max-width: 1300px;
             margin: 40px auto;
             padding: 0 20px;
         }
-
         h1 {
             text-align: center;
             margin-bottom: 30px;
             font-size: 32px;
         }
-
-        .skins-section {
+        .skins-wrapper {
             display: flex;
+            justify-content: space-between;
             gap: 30px;
-            justify-content: center;
-            flex-wrap: wrap;
-            margin-bottom: 40px;
         }
-
+        .skins-list {
+            flex: 1;
+        }
+        .skins-list h2 {
+            text-align: center;
+            margin-bottom: 15px;
+        }
+        .skins-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            gap: 20px;
+        }
         .skin-card {
             background-color: #1f2630;
-            border-radius: 12px;
-            width: 180px;
             padding: 15px;
-            box-shadow: 0 0 10px rgba(116, 255, 107, 0.3);
+            border-radius: 12px;
             text-align: center;
             cursor: pointer;
-            transition: transform 0.2s;
+            transition: transform 0.2s, background-color 0.3s;
         }
         .skin-card:hover {
-            transform: scale(1.05);
-            background-color: #2c3440;
+            background-color: #2a323e;
+            transform: scale(1.03);
         }
-        .skin-card img {
-            width: 100%;
-            border-radius: 8px;
+        .skin-card.selected {
+            border: 2px solid #74ff6b;
+            background-color: #2e3b49;
         }
-        .skin-name {
-            margin-top: 10px;
-            font-size: 16px;
-            font-weight: 600;
-        }
-        .skin-price {
-            margin-top: 5px;
-            color: #74ff6b;
-            font-size: 14px;
-        }
-
-        form {
+        .center {
             text-align: center;
-            margin-bottom: 50px;
+            margin-top: 30px;
         }
-
-        select, button {
+        button {
             font-family: 'Orbitron', sans-serif;
             font-size: 16px;
-            padding: 12px 20px;
+            padding: 12px 30px;
             border-radius: 12px;
             border: none;
             outline: none;
             cursor: pointer;
             transition: background-color 0.3s;
-        }
-
-        select {
-            width: 250px;
-            margin-right: 20px;
-            background-color: #1f2630;
-            color: white;
-        }
-        select option {
-            background-color: #0c0f13;
-            color: white;
-        }
-
-        button {
             background-color: #74ff6b;
             color: #0c0f13;
             font-weight: 700;
-            border-radius: 12px;
-            width: 150px;
         }
-        button:hover {
-            background-color: #58cc4a;
+        button:disabled {
+            background-color: #444;
+            cursor: not-allowed;
         }
 
-        .result {
-            text-align: center;
-            font-size: 20px;
-            margin-top: 30px;
-            color: #74ff6b;
+        /* --- Круг с прогрессом --- */
+        #animation-box {
+            width: 200px;
+            height: 200px;
+            margin: 20px auto 40px auto;
+            position: relative;
+            border-radius: 50%;
+            border: 6px solid #555;
+            background: transparent;
+            overflow: hidden;
+        }
+
+        /* Прогресс снизу — зеленый прямоугольник, высота зависит от upgradeChance */
+        #progress-fill {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            background-color: #74ff6b;
+            border-radius: 0 0 50% 50%;
+            height: 0%; /* динамически изменяется */
+            transition: height 0.5s ease;
+        }
+
+        /* Стрелка в центре круга */
+        #arrow {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 8px;
+            height: 80px;
+            background: #ffd700;
+            border-radius: 4px;
+            transform-origin: bottom center;
+            transform: translate(-50%, -100%) rotate(0deg);
+            box-shadow: 0 0 10px #ffd700;
+            transition: transform 2s ease-out;
+        }
+
+        /* Стрелка - маленький треугольник сверху стрелки */
+        #arrow::before {
+            content: "";
+            position: absolute;
+            top: -15px;
+            left: 50%;
+            transform: translateX(-50%);
+            border-left: 10px solid transparent;
+            border-right: 10px solid transparent;
+            border-bottom: 15px solid #ffd700;
         }
     </style>
 </head>
@@ -132,61 +154,161 @@
     <a href="/profile">Профиль</a>
 </header>
 
+<div id="animation-box">
+    <div id="progress-fill"></div>
+    <div id="arrow"></div>
+</div>
+
 <div class="container">
     <h1>Апгрейд скинов</h1>
 
-    <form id="upgradeForm" th:action="@{/skin-upgrade}" method="post" th:object="${upgrade}">
-        <label for="skinDto">Выберите скин для апгрейда:</label>
-        <select id="skinDto" name="skinDto.id" required>
-            <option value="" disabled selected>-- Выберите скин --</option>
-            <option th:each="skin : ${userSkins}"
-                    th:value="${skin.id}"
-                    th:data-price="${skin.price}"
-                    th:text="${skin.name} + ' (' + skin.price + '₽)'"></option>
-        </select>
+    <div class="skins-wrapper">
+        <div class="skins-list" id="userSkins">
+            <h2>Ваши скины</h2>
+            <div class="skins-grid" id="userSkinsGrid"></div>
+        </div>
+        <div class="skins-list" id="upgradeOptions">
+            <h2>Скины для апгрейда</h2>
+            <div class="skins-grid" id="upgradeSkinsGrid"></div>
+        </div>
+    </div>
 
-        <label for="newSkin">Выберите новый скин:</label>
-        <select id="newSkin" name="newSkin.id" required>
-            <option value="" disabled selected>-- Выберите новый скин --</option>
-            <!-- Сюда будут подставляться варианты из JS -->
-        </select>
-
-        <button type="submit">Начать апгрейд</button>
-    </form>
-
-    <div class="result" th:if="${upgrade != null}">
-        <p th:text="'Результат апгрейда: ' + ${upgrade.name} + ' за ' + ${upgrade.price} + '₽'"></p>
+    <div class="center">
+        <button id="upgradeButton" disabled>🔁 Апгрейднуть</button>
+        <div class="result" id="result"></div>
     </div>
 </div>
 
 <script>
-    document.addEventListener('DOMContentLoaded', function () {
-        const skinSelect = document.getElementById('skinDto');
-        const newSkinSelect = document.getElementById('newSkin');
+    let selectedUserSkin = null;
+    let selectedUpgradeSkin = null;
 
-        skinSelect.addEventListener('change', function () {
-            const selectedOption = skinSelect.options[skinSelect.selectedIndex];
-            const skinId = selectedOption.value;
-            const skinPrice = selectedOption.getAttribute('data-price');
+    const userSkinsGrid = document.getElementById('userSkinsGrid');
+    const upgradeSkinsGrid = document.getElementById('upgradeSkinsGrid');
+    const upgradeButton = document.getElementById('upgradeButton');
+    const resultDiv = document.getElementById('result');
+    const progressFill = document.getElementById('progress-fill');
+    const arrow = document.getElementById('arrow');
 
-            if (!skinId || !skinPrice) return;
+    function createSkinCard(skin, onClick) {
+        const card = document.createElement('div');
+        card.className = 'skin-card';
+        card.textContent = `${skin.name} (${skin.price}₽)`;
+        card.addEventListener('click', () => onClick(card, skin));
+        return card;
+    }
 
-            fetch(`/get-available-skins-upgrade?id=${skinId}&price=${skinPrice}`)
-                .then(response => response.json())
-                .then(data => {
-                    newSkinSelect.innerHTML = '<option value="" disabled selected>-- Выберите новый скин --</option>';
-                    data.forEach(skin => {
-                        const option = document.createElement('option');
-                        option.value = skin.id;
-                        option.textContent = `${skin.name} (${skin.price}₽)`;
-                        newSkinSelect.appendChild(option);
+    function loadUserSkins() {
+        fetch('/get-user-skins')
+            .then(res => res.json())
+            .then(data => {
+                userSkinsGrid.innerHTML = '';
+                upgradeSkinsGrid.innerHTML = '';
+                selectedUserSkin = null;
+                selectedUpgradeSkin = null;
+                upgradeButton.disabled = true;
+                resetProgressAndArrow();
+
+                data.forEach(skin => {
+                    const card = createSkinCard(skin, (el, selected) => {
+                        userSkinsGrid.querySelectorAll('.skin-card').forEach(c => c.classList.remove('selected'));
+                        el.classList.add('selected');
+                        selectedUserSkin = selected;
+                        loadUpgradeOptions(selected.id, selected.price);
                     });
-                })
-                .catch(err => {
-                    console.error('Ошибка загрузки доступных скинов:', err);
+                    userSkinsGrid.appendChild(card);
                 });
-        });
+            });
+    }
+
+    function loadUpgradeOptions(id, price) {
+        fetch(`/get-available-skins-upgrade?id=${id}&price=${price}`)
+            .then(res => res.json())
+            .then(data => {
+                upgradeSkinsGrid.innerHTML = '';
+                selectedUpgradeSkin = null;
+                upgradeButton.disabled = true;
+                resetProgressAndArrow();
+
+                data.forEach(skin => {
+                    const card = createSkinCard(skin, (el, selected) => {
+                        upgradeSkinsGrid.querySelectorAll('.skin-card').forEach(c => c.classList.remove('selected'));
+                        el.classList.add('selected');
+                        selectedUpgradeSkin = selected;
+                        upgradeButton.disabled = false;
+
+                        // Обновляем прогресс по upgradeChance для выбранного скина апгрейда
+                        updateProgress(selected.upgradeChance ?? selected.price);
+                        // Если в объекте upgradeChance нет — можно заменить на price или 0-100%
+                    });
+                    upgradeSkinsGrid.appendChild(card);
+                });
+            });
+    }
+
+    function resetProgressAndArrow() {
+        progressFill.style.height = '0%';
+        arrow.style.transform = `translate(-50%, -100%) rotate(0deg)`;
+        resultDiv.innerHTML = '';
+    }
+
+    function updateProgress(upgradeChance) {
+        // Ограничим в 0-100
+        let percent = Math.min(Math.max(upgradeChance, 0), 100);
+        progressFill.style.height = percent + '%';
+    }
+
+    function animateArrowToRolledChance(rolledChance) {
+        // Ограничим в 0-100
+        let percent = Math.min(Math.max(rolledChance, 0), 100);
+        // 100% = 360 градусов
+        let targetDeg = percent * 3.6;
+
+        // Запускаем анимацию вращения стрелки на 3 полных оборота + targetDeg
+        let totalRotation = 360 * 3 + targetDeg;
+
+        arrow.style.transition = 'transform 3s ease-out';
+        arrow.style.transform = `translate(-50%, -100%) rotate(${totalRotation}deg)`;
+    }
+
+    upgradeButton.addEventListener('click', () => {
+        if (!selectedUserSkin || !selectedUpgradeSkin) return;
+
+        resultDiv.innerHTML = 'Обработка...';
+
+        const requestBody = {
+            currentSkin: selectedUserSkin,
+            newSkin: selectedUpgradeSkin
+        };
+
+        fetch('/skin-upgrade', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(requestBody)
+        })
+            .then(res => res.json())
+            .then(data => {
+                // Обновляем прогресс заполнения по upgradeChance
+                updateProgress(data.upgradeChance * 100); // предполагается, что upgradeChance в формате 0..1, умножаем на 100%
+
+                // Анимируем стрелку по rolledChance
+                animateArrowToRolledChance(data.rolledChance * 100);
+
+                // Через 3 секунды (когда стрелка остановится) показываем результат и обновляем скины
+                setTimeout(() => {
+                    resultDiv.innerHTML = data.success
+                        ? `<span style="color: #00e676;">✅ Успех! (${(data.rolledChance * 100).toFixed(2)}% / ${(data.upgradeChance * 100).toFixed(2)}%)</span>`
+                        : `<span style="color: #ff1744;">❌ Неудача! (${(data.rolledChance * 100).toFixed(2)}% / ${(data.upgradeChance * 100).toFixed(2)}%)</span>`;
+                    loadUserSkins();
+                }, 3000);
+            })
+            .catch(err => {
+                resultDiv.innerHTML = `<span style="color: orange;">Ошибка при апгрейде</span>`;
+                console.error(err);
+            });
     });
+
+    document.addEventListener('DOMContentLoaded', loadUserSkins);
 </script>
 
 </body>

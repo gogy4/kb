@@ -1,6 +1,8 @@
 package com.example.demo.controller;
 
 import com.example.demo.application.dto.SkinDto;
+import com.example.demo.application.dto.SkinUpgradeRequest;
+import com.example.demo.application.dto.UpgradeDto;
 import com.example.demo.application.dto.UserDto;
 import com.example.demo.application.service.UpgradeService;
 import lombok.RequiredArgsConstructor;
@@ -32,28 +34,42 @@ public class UpgradeController {
         return "";
     }
 
+    @GetMapping("/get-user-skins")
+    @ResponseBody
+    public List<SkinDto> getUserSkins(Authentication auth) {
+        var principal = auth.getPrincipal();
+        if (principal instanceof UserDto user) {
+            return user.getSkins();
+        }
+        return List.of();
+    }
+
     @PostMapping("skin-upgrade")
-    public String skinUpgrade(Authentication auth, SkinDto skinDto, SkinDto newSkin, Model model) {
+    @ResponseBody
+    public UpgradeDto skinUpgrade(Authentication auth, @RequestBody SkinUpgradeRequest request) {
         var principal = auth.getPrincipal();
 
         if (principal instanceof UserDto user) {
-            var upgrade = upgradeService.upgradeSkin(skinDto, newSkin, user.getId());
-            if (upgrade == null) return "upgrade";
-            model.addAttribute("upgrade", upgrade);
-            return "skin-upgrade";
+            var upgrade = upgradeService.upgradeSkin(request.getCurrentSkin(), request.getNewSkin(), user.getId());
+            return upgrade != null ? upgrade : UpgradeDto.builder()
+                    .success(false)
+                    .rolledChance(0)
+                    .upgradeChance(0)
+                    .build();
         }
 
-        return "";
+        return UpgradeDto.builder()
+                .success(false)
+                .rolledChance(0)
+                .upgradeChance(0)
+                .build();
     }
 
     @GetMapping("get-available-skins-upgrade")
     @ResponseBody
     public List<SkinDto> getAvailableSkinUpgrade(Authentication auth, SkinDto skinDto) {
-        var principal = auth.getPrincipal();
-        if (principal instanceof UserDto user) {
-            return upgradeService.getAvailableSkins(skinDto);
-        }
-        return List.of();
+        var skins = upgradeService.getAvailableSkins(skinDto);
+        return skins;
     }
 
     @GetMapping("get-available-multiply-skin-upgrade")

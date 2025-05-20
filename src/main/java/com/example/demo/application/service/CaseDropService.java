@@ -4,11 +4,14 @@ import com.example.demo.application.dto.CaseDto;
 import com.example.demo.application.dto.SkinDto;
 import com.example.demo.application.mappers.CaseMapper;
 import com.example.demo.application.mappers.SkinMapper;
+import com.example.demo.application.mappers.UserMapper;
 import com.example.demo.domain.entities.SkinEntity;
 import com.example.demo.infrastructure.repository.CaseRepository;
 import com.example.demo.infrastructure.repository.UserRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import java.util.Random;
@@ -22,6 +25,7 @@ public class CaseDropService {
     private final CaseRepository caseRepository;
     private final CaseMapper caseMapper;
     private final Random random = new Random();
+    private final UserMapper userMapper;
 
     //временно будет публичным для тестов
     public SkinEntity getDroppedSkin(CaseDto caseBaseInfo, double winningChance){
@@ -50,6 +54,15 @@ public class CaseDropService {
         var user = userRepository.findById(userId).orElseThrow(() -> new RuntimeException("User not found"));;
         user.addSkin(skin);
         userRepository.save(user);
+        var updatedUserDto = userMapper.toUserDto(user);
+
+        SecurityContextHolder.getContext().setAuthentication(
+                new UsernamePasswordAuthenticationToken(
+                        updatedUserDto,
+                        null,
+                        SecurityContextHolder.getContext().getAuthentication().getAuthorities()
+                )
+        );
         return skinMapper.toSkinDto(skin);
     }
 }
