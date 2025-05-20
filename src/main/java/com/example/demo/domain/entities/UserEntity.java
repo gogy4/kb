@@ -14,7 +14,7 @@ import java.util.List;
 public class UserEntity {
     @Id
     private long id;
-    private String tradeUrl;
+    private String tradeLink;
     private String userName;
     private String avatarUrl;
     private double winningChance;

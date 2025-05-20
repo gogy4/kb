@@ -1,16 +1,16 @@
 package com.example.demo.application.dto;
 
-import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
-import lombok.NoArgsConstructor;
+
+import java.util.List;
 
 @Data
 @Builder
-
-public class SkinBaseDto {
+public class CaseDto {
     private long id;
     private double price;
-    private String name;
+    private List<SkinBaseDto> skins;
     private String imageUrl;
+    private String title;
 }

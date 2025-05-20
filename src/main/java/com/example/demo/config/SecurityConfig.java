@@ -14,18 +14,29 @@ public class SecurityConfig {
         http
                 .csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(auth -> auth
-                        .anyRequest().permitAll()   // Разрешаем ВСЕ запросы без авторизации
+                        .requestMatchers("/profile").authenticated()
+                        .requestMatchers("/skin-upgrade").authenticated()
+                        .requestMatchers("/get-available-skins-upgrade").authenticated()
+                        .requestMatchers("/get-available-multiply-skin-upgrade").authenticated()
+                        .requestMatchers("/open-case/").authenticated()
+                        .anyRequest().permitAll()
                 )
-                .formLogin(form -> form.disable())
+                .formLogin(form -> form
+                        .loginPage("/login")
+                        .permitAll()
+                )
+                .rememberMe(rememberMe -> rememberMe
+                        .key("uniqueAndSecretKey")  // можно заменить на любой секретный ключ
+                        .tokenValiditySeconds(60 * 60 * 24 * 30) // 30 дней
+                )
                 .logout(logout -> logout
                         .logoutRequestMatcher(new AntPathRequestMatcher("/logout"))
                         .logoutSuccessUrl("/")
                         .invalidateHttpSession(true)
                         .clearAuthentication(true)
-                        .permitAll()              // logout доступен всем, но сам logout требует авторизации (по умолчанию)
+                        .permitAll()
                 );
 
         return http.build();
     }
-
 }

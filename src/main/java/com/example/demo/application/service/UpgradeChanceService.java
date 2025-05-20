@@ -1,6 +1,7 @@
 package com.example.demo.application.service;
 
 import com.example.demo.application.dto.SkinBaseDto;
+import com.example.demo.application.dto.SkinDto;
 import com.example.demo.application.dto.UpgradeDto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -10,7 +11,7 @@ import java.util.concurrent.ThreadLocalRandom;
 @Service
 @RequiredArgsConstructor
 public class UpgradeChanceService {
-    private double getUpgradeChance(SkinBaseDto currentItem, SkinBaseDto targetItem, double winningChance){
+    private double getUpgradeChance(SkinDto currentItem, SkinDto targetItem, double winningChance){
         var chance = currentItem.getPrice() / targetItem.getPrice();
         if (winningChance > 0.5){
             chance *= 1 + winningChance - 0.5;
@@ -21,7 +22,7 @@ public class UpgradeChanceService {
         return Math.min(1, chance);
     }
 
-    public UpgradeDto performUpgrade(SkinBaseDto currentItem, SkinBaseDto targetItem, double winningChance){
+    public UpgradeDto performUpgrade(SkinDto currentItem, SkinDto targetItem, double winningChance){
         var upgradeChance  = getUpgradeChance(currentItem, targetItem, winningChance);
         var rolledChance = ThreadLocalRandom.current().nextDouble();
         var success = rolledChance <= upgradeChance;

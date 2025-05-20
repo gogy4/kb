@@ -1,6 +1,6 @@
 package com.example.demo.application.service;
 
-import com.example.demo.application.dto.CaseBaseDto;
+import com.example.demo.application.dto.CaseDto;
 import com.example.demo.application.mappers.SkinMapper;
 import com.example.demo.domain.entities.SkinEntity;
 import lombok.RequiredArgsConstructor;
@@ -13,7 +13,7 @@ import java.util.Map;
 @RequiredArgsConstructor
 public class CaseDropChanceService {
     private final SkinMapper skinMapper;
-    public Map<SkinEntity, Double> calculateDropChance(CaseBaseDto caseBaseInfo, double winningChance) {
+    public Map<SkinEntity, Double> calculateDropChance(CaseDto caseBaseInfo, double winningChance) {
         var adjustedWeights = new HashMap<SkinEntity, Double>();
         var skins = caseBaseInfo.getSkins();
         var casePrice = caseBaseInfo.getPrice();

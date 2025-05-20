@@ -9,7 +9,13 @@ import lombok.RequiredArgsConstructor;
 import org.openid4java.consumer.ConsumerManager;
 import org.openid4java.discovery.DiscoveryInformation;
 import org.openid4java.message.ParameterList;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.context.SecurityContextImpl;
 import org.springframework.stereotype.Service;
+
+import java.util.List;
 
 
 @Service
@@ -17,6 +23,7 @@ import org.springframework.stereotype.Service;
 public class ProcessSteamLoginService {
     private final UserRepository userRepository;
     private final UserMapper userMapper;
+
     //нужно возваращать пользователя из бд или создавать нового с steamId.
     public UserDto processSteamLogin(HttpServletRequest request) throws Exception{
         var session = request.getSession();
@@ -37,14 +44,19 @@ public class ProcessSteamLoginService {
             var steamId = Long.parseLong(steamIdStr);
             var user = userRepository.findById(steamId).orElse(null);
             session.setAttribute("steamId", steamId);
-            if (user != null){
-                return userMapper.toUserDto(user);
+            UserEntity finalUser;
+            if (user != null) {
+                finalUser = user;
+            } else {
+                finalUser = new UserEntity(steamId);
+                userRepository.save(finalUser);
             }
-            else{
-                var newUser = new UserEntity(steamId);
-                userRepository.save(newUser);
-                return userMapper.toUserDto(newUser);
-            }
+            var userDto = userMapper.toUserDto(finalUser);
+            var authorities = List.of(new SimpleGrantedAuthority("ROLE_USER")); // или другие роли
+            var auth = new UsernamePasswordAuthenticationToken(userDto, null, authorities);
+            SecurityContextHolder.getContext().setAuthentication(auth);
+            session.setAttribute("SPRING_SECURITY_CONTEXT", new SecurityContextImpl(auth));
+            return userDto;
         }
 
         return null;

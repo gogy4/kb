@@ -30,4 +30,8 @@ public class SkinMapper {
     public SkinEntity toSkin(SkinBaseDto skinBaseDto) {
         return skinRepository.getById(skinBaseDto.getId());
     }
+
+    public SkinEntity toSkin(SkinDto skinBaseDto) {
+        return skinRepository.getById(skinBaseDto.getId());
+    }
 }

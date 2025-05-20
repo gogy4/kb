@@ -1,6 +1,6 @@
 package com.example.demo.application.service;
 
-import com.example.demo.application.dto.CaseBaseDto;
+import com.example.demo.application.dto.CaseDto;
 import com.example.demo.application.mappers.CaseMapper;
 import com.example.demo.domain.entities.CaseEntity;
 import com.example.demo.domain.entities.SkinEntity;
@@ -18,7 +18,7 @@ public class AdminCaseService {
     private final SkinRepository skinRepository;
     private final CaseMapper caseMapper;
 
-    public CaseBaseDto addNewCase(String name, int price, String imageUrl){
+    public CaseDto addNewCase(String name, int price, String imageUrl){
         var newCase = CaseEntity.builder()
                 .name(name)
                 .price(price)

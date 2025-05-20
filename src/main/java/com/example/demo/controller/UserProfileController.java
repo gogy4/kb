@@ -1,23 +1,39 @@
 package com.example.demo.controller;
 
 import com.example.demo.application.dto.UserDto;
+import com.example.demo.application.service.UserService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.ResponseBody;
-import org.springframework.web.servlet.view.RedirectView;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 
 @Controller
 @RequiredArgsConstructor
 public class UserProfileController {
+
+    private final UserService userService;
     @GetMapping("/profile")
-    public String profileView(@AuthenticationPrincipal UserDto user, Model model) {
-        if (user == null || user.getId() == -1) {
-            return "redirect:/login";
+    public String profileView(Authentication auth, Model model) {
+        var principal = auth.getPrincipal();
+
+        if (principal instanceof UserDto user) {
+            model.addAttribute("user", user);
+            return "profile";
         }
-        model.addAttribute("user", user);
-        return "profile";
+
+        return "redirect:/login";
     }
+
+    @PostMapping("/profile/trade-link")
+    public String updateTradeLink(@RequestParam String tradeLink, Authentication auth) {
+        var principal = auth.getPrincipal();
+        if (principal instanceof UserDto user) {
+            userService.saveTradeLink(user, tradeLink);
+        }
+        return "redirect:/profile";
+    }
+
 }

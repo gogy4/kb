@@ -12,4 +12,7 @@ public class UserDto {
     private String name;
     private String avatarUrl;
     private List<SkinDto> skins;
+    private String tradeLink;
+    private double winningChance;
+    private double winningBalance;
 }

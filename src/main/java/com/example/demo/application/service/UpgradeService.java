@@ -21,24 +21,23 @@ public class UpgradeService {
     private final UserRepository userRepository;
     private final SkinMapper skinMapper;
 
-    public List<SkinEntity> getAvailableSkins(SkinBaseDto skinBaseDto) {
+    public List<SkinEntity> getAvailableSkins(SkinDto skinBaseDto) {
         return skinRepository.finAvailableSkins(skinBaseDto.getPrice());
     }
 
-    public List<SkinEntity> getAvailableSkins(SkinBaseDto skinBaseDto, double multiplier) {
+    public List<SkinEntity> getAvailableSkins(SkinDto skinBaseDto, double multiplier) {
         return skinRepository.finAvailableSkins(skinBaseDto.getPrice(), multiplier);
     }
 
     @Transactional
-    public UpgradeDto upgradeSkin(SkinEntity currentSkin, SkinEntity targetSkin, long userId) {
-        var currentSkinBase = skinMapper.toSkinBase(currentSkin);
-        var targetSkinBase = skinMapper.toSkinBase(targetSkin);
+    public UpgradeDto upgradeSkin(SkinDto currentSkin, SkinDto targetSkin, long userId) {
         var user = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("User not found"));
-        var upgradeDto = upgradeChanceService.performUpgrade(currentSkinBase, targetSkinBase, user.getWinningChance());
-        user.removeSkin(currentSkin);
+        var upgradeDto = upgradeChanceService.performUpgrade(currentSkin, targetSkin, user.getWinningChance());
+        if (!user.getSkins().contains(skinMapper.toSkin(currentSkin))) return null;
+        user.removeSkin(skinMapper.toSkin(currentSkin));
         if (upgradeDto.isSuccess()) {
-            user.addSkin(targetSkin);
+            user.addSkin(skinMapper.toSkin(targetSkin));
         }
         userRepository.save(user);
         return upgradeDto;

@@ -7,9 +7,9 @@ import java.util.List;
 
 @Data
 @Builder
-public class CaseBaseDto {
+public class CaseHomeDto {
     private long id;
     private double price;
-    private List<SkinBaseDto> skins;
     private String imageUrl;
+    private String title;
 }

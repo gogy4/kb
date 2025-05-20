@@ -1,7 +1,8 @@
 package com.example.demo;
 
-import com.example.demo.application.dto.CaseBaseDto;
+import com.example.demo.application.dto.CaseDto;
 import com.example.demo.application.dto.SkinBaseDto;
+import com.example.demo.application.dto.SkinDto;
 import com.example.demo.application.service.CaseDropService;
 import com.example.demo.application.service.UpgradeChanceService;
 import org.junit.jupiter.api.Test;
@@ -36,7 +37,7 @@ public class DropServiceTest {
                 .price(120.0)
                 .build();
 
-        var caseBaseInfo = CaseBaseDto.builder()
+        var caseBaseInfo = CaseDto.builder()
                 .id(1L)
                 .price(100.0)
                 .skins(List.of(skinA, skinB, skinC))
@@ -66,12 +67,12 @@ public class DropServiceTest {
 
     @Test
     public void testUpgradeRandomSkin() {
-        var skinA = SkinBaseDto.builder()
+        var skinA = SkinDto.builder()
                 .id(1L)
                 .price(120)
                 .build();
 
-        var skinB = SkinBaseDto.builder()
+        var skinB = SkinDto.builder()
                 .id(2L)
                 .price(38)
                 .build();

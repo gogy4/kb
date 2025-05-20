@@ -1,28 +1,38 @@
-﻿package com.example.demo.controller;
+package com.example.demo.controller;
 
+import com.example.demo.application.dto.SkinDto;
 import com.example.demo.application.dto.UserDto;
+import com.example.demo.application.service.CaseDropService;
 import com.example.demo.application.service.CaseService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.Authentication;
+import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
-@RestController
+@Controller
 @RequiredArgsConstructor
 public class CaseController {
+    private final CaseDropService caseDropService;
     private final CaseService caseService;
 
-    @GetMapping("get-case/{caseId}")
-    public String getCase(@PathVariable long caseId, @AuthenticationPrincipal UserDto user, Model model){
-        if (user == null || user.getId() == -1) {
-            return "redirect:/login";
-        }
-
+    @GetMapping("case/{caseId}")
+    public String getCase(@PathVariable long caseId, Model model){
         var caseDto = caseService.getCaseById(caseId);
         model.addAttribute("case", caseDto);
         model.addAttribute("skins", caseDto.getSkins());
         return "case";
     }
+
+    @PostMapping("/open-case/{caseId}")
+    @ResponseBody
+    public SkinDto openCase(@PathVariable long caseId, Authentication auth) throws Exception {
+        var principal = auth.getPrincipal();
+        if (principal instanceof UserDto user) {
+            var skin = caseDropService.dropSkin(caseId, user.getWinningChance(), user.getId());
+            return skin;
+        }
+        throw new RuntimeException("Unauthorized");
+    }
+
 }

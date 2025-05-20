@@ -1,0 +1,160 @@
+﻿<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Апгрейды</title>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500&display=swap" rel="stylesheet" />
+    <style>
+        body {
+            background: #0c0f13;
+            font-family: 'Orbitron', sans-serif;
+            color: white;
+            margin: 0;
+        }
+        header {
+            display: flex;
+            justify-content: space-around;
+            padding: 20px;
+            background-color: #1a1f24;
+            border-bottom: 2px solid #222;
+        }
+        header a {
+            text-decoration: none;
+            color: white;
+            font-weight: bold;
+            padding: 10px 20px;
+            border-radius: 8px;
+            transition: 0.3s;
+        }
+        header a:hover {
+            background-color: #333;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 40px auto;
+            padding: 0 20px;
+        }
+
+        h1 {
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 32px;
+        }
+
+        .skins-section {
+            display: flex;
+            gap: 30px;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin-bottom: 40px;
+        }
+
+        .skin-card {
+            background-color: #1f2630;
+            border-radius: 12px;
+            width: 180px;
+            padding: 15px;
+            box-shadow: 0 0 10px rgba(116, 255, 107, 0.3);
+            text-align: center;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+        .skin-card:hover {
+            transform: scale(1.05);
+            background-color: #2c3440;
+        }
+        .skin-card img {
+            width: 100%;
+            border-radius: 8px;
+        }
+        .skin-name {
+            margin-top: 10px;
+            font-size: 16px;
+            font-weight: 600;
+        }
+        .skin-price {
+            margin-top: 5px;
+            color: #74ff6b;
+            font-size: 14px;
+        }
+
+        form {
+            text-align: center;
+            margin-bottom: 50px;
+        }
+
+        select, button {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 16px;
+            padding: 12px 20px;
+            border-radius: 12px;
+            border: none;
+            outline: none;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        select {
+            width: 250px;
+            margin-right: 20px;
+            background-color: #1f2630;
+            color: white;
+        }
+        select option {
+            background-color: #0c0f13;
+            color: white;
+        }
+
+        button {
+            background-color: #74ff6b;
+            color: #0c0f13;
+            font-weight: 700;
+            border-radius: 12px;
+            width: 150px;
+        }
+        button:hover {
+            background-color: #58cc4a;
+        }
+
+        .result {
+            text-align: center;
+            font-size: 20px;
+            margin-top: 30px;
+            color: #74ff6b;
+        }
+    </style>
+</head>
+<body>
+
+<header>
+    <a href="/">Кейсы</a>
+    <a href="/upgrades">Апгрейды</a>
+    <a href="/profile">Профиль</a>
+</header>
+
+<div class="container">
+    <h1>Апгрейд скинов</h1>
+
+    <form th:action="@{/skin-upgrade}" method="post" th:object="${upgrade}">
+        <label for="skinDto">Выберите скин для апгрейда:</label>
+        <select id="skinDto" name="skinDto.id" required>
+            <option value="" disabled selected>-- Выберите скин --</option>
+            <option th:each="skin : ${userSkins}" th:value="${skin.id}" th:text="${skin.name} + ' (' + skin.price + '₽)'"></option>
+        </select>
+
+        <label for="newSkin">Выберите новый скин:</label>
+        <select id="newSkin" name="newSkin.id" required>
+            <option value="" disabled selected>-- Выберите новый скин --</option>
+            <option th:each="skin : ${availableSkins}" th:value="${skin.id}" th:text="${skin.name} + ' (' + skin.price + '₽)'"></option>
+        </select>
+
+        <button type="submit">Начать апгрейд</button>
+    </form>
+
+    <div class="result" th:if="${upgrade != null}">
+        <p th:text="'Результат апгрейда: ' + ${upgrade.name} + ' за ' + ${upgrade.price} + '₽'"></p>
+    </div>
+</div>
+
+</body>
+</html>
