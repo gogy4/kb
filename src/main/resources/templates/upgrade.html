@@ -135,17 +135,20 @@
 <div class="container">
     <h1>Апгрейд скинов</h1>
 
-    <form th:action="@{/skin-upgrade}" method="post" th:object="${upgrade}">
+    <form id="upgradeForm" th:action="@{/skin-upgrade}" method="post" th:object="${upgrade}">
         <label for="skinDto">Выберите скин для апгрейда:</label>
         <select id="skinDto" name="skinDto.id" required>
             <option value="" disabled selected>-- Выберите скин --</option>
-            <option th:each="skin : ${userSkins}" th:value="${skin.id}" th:text="${skin.name} + ' (' + skin.price + '₽)'"></option>
+            <option th:each="skin : ${userSkins}"
+                    th:value="${skin.id}"
+                    th:data-price="${skin.price}"
+                    th:text="${skin.name} + ' (' + skin.price + '₽)'"></option>
         </select>
 
         <label for="newSkin">Выберите новый скин:</label>
         <select id="newSkin" name="newSkin.id" required>
             <option value="" disabled selected>-- Выберите новый скин --</option>
-            <option th:each="skin : ${availableSkins}" th:value="${skin.id}" th:text="${skin.name} + ' (' + skin.price + '₽)'"></option>
+            <!-- Сюда будут подставляться варианты из JS -->
         </select>
 
         <button type="submit">Начать апгрейд</button>
@@ -155,6 +158,36 @@
         <p th:text="'Результат апгрейда: ' + ${upgrade.name} + ' за ' + ${upgrade.price} + '₽'"></p>
     </div>
 </div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const skinSelect = document.getElementById('skinDto');
+        const newSkinSelect = document.getElementById('newSkin');
+
+        skinSelect.addEventListener('change', function () {
+            const selectedOption = skinSelect.options[skinSelect.selectedIndex];
+            const skinId = selectedOption.value;
+            const skinPrice = selectedOption.getAttribute('data-price');
+
+            if (!skinId || !skinPrice) return;
+
+            fetch(`/get-available-skins-upgrade?id=${skinId}&price=${skinPrice}`)
+                .then(response => response.json())
+                .then(data => {
+                    newSkinSelect.innerHTML = '<option value="" disabled selected>-- Выберите новый скин --</option>';
+                    data.forEach(skin => {
+                        const option = document.createElement('option');
+                        option.value = skin.id;
+                        option.textContent = `${skin.name} (${skin.price}₽)`;
+                        newSkinSelect.appendChild(option);
+                    });
+                })
+                .catch(err => {
+                    console.error('Ошибка загрузки доступных скинов:', err);
+                });
+        });
+    });
+</script>
 
 </body>
 </html>

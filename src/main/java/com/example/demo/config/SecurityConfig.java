@@ -18,7 +18,7 @@ public class SecurityConfig {
                         .requestMatchers("/skin-upgrade").authenticated()
                         .requestMatchers("/get-available-skins-upgrade").authenticated()
                         .requestMatchers("/get-available-multiply-skin-upgrade").authenticated()
-                        .requestMatchers("/open-case/").authenticated()
+                        .requestMatchers("/open-case/**").authenticated()
                         .anyRequest().permitAll()
                 )
                 .formLogin(form -> form

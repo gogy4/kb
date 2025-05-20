@@ -12,6 +12,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -21,12 +22,16 @@ public class UpgradeService {
     private final UserRepository userRepository;
     private final SkinMapper skinMapper;
 
-    public List<SkinEntity> getAvailableSkins(SkinDto skinBaseDto) {
-        return skinRepository.finAvailableSkins(skinBaseDto.getPrice());
+    public List<SkinDto> getAvailableSkins(SkinDto skinBaseDto) {
+        return skinRepository.finAvailableSkins(skinBaseDto.getPrice()).stream()
+                .map(skinMapper::toSkinDto)
+                .collect(Collectors.toList());
     }
 
-    public List<SkinEntity> getAvailableSkins(SkinDto skinBaseDto, double multiplier) {
-        return skinRepository.finAvailableSkins(skinBaseDto.getPrice(), multiplier);
+    public List<SkinDto> getAvailableSkins(SkinDto skinBaseDto, double multiplier) {
+        return skinRepository.finAvailableSkins(skinBaseDto.getPrice(), multiplier).stream()
+                .map(skinMapper::toSkinDto)
+                .collect(Collectors.toList());
     }
 
     @Transactional

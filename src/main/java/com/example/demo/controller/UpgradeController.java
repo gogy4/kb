@@ -7,9 +7,9 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @Controller
 @RequiredArgsConstructor
@@ -25,6 +25,7 @@ public class UpgradeController {
         var principal = auth.getPrincipal();
         if (principal instanceof UserDto user) {
             model.addAttribute("userSkins", user == null ? null : user.getSkins());
+
             return "upgrade";
         }
 
@@ -46,27 +47,23 @@ public class UpgradeController {
     }
 
     @GetMapping("get-available-skins-upgrade")
-    public String getAvailableSkinUpgrade(Authentication auth, Model model, SkinDto skinDto) {
+    @ResponseBody
+    public List<SkinDto> getAvailableSkinUpgrade(Authentication auth, SkinDto skinDto) {
         var principal = auth.getPrincipal();
         if (principal instanceof UserDto user) {
-            var availableSKins = upgradeService.getAvailableSkins(skinDto);
-            model.addAttribute("availableSkins", availableSKins);
-            return "available-skin-upgrade";
+            return upgradeService.getAvailableSkins(skinDto);
         }
-
-        return "";
+        return List.of();
     }
 
     @GetMapping("get-available-multiply-skin-upgrade")
-    public String getAvailableMultiplySkinUpgrade(Authentication auth, Model model, SkinDto skinDto,
-                                                  double multiplier) {
+    @ResponseBody
+    public List<SkinDto> getAvailableMultiplySkinUpgrade(Authentication auth, SkinDto skinDto,
+                                                         @RequestParam double multiplier) {
         var principal = auth.getPrincipal();
         if (principal instanceof UserDto user) {
-            var availableSKins = upgradeService.getAvailableSkins(skinDto, multiplier);
-            model.addAttribute("availableSkins", availableSKins);
-            return "available-skin-upgrade";
+            return  upgradeService.getAvailableSkins(skinDto, multiplier);
         }
-
-        return "";
+        return List.of();
     }
 }
