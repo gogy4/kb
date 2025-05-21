@@ -45,14 +45,14 @@ public class UpgradeService {
     public UpgradeDto upgradeSkin(SkinDto currentSkin, SkinDto targetSkin, long userId) {
         var user = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("User not found"));
-        var upgradeDto = upgradeChanceService.performUpgrade(currentSkin, targetSkin, user.getWinningChance());
+        var upgradeDto = upgradeChanceService.performUpgrade(currentSkin, targetSkin, user.getId());
         if (!user.getSkins().contains(skinMapper.toSkin(currentSkin))) return null;
         user.removeSkin(skinMapper.toSkin(currentSkin));
         if (upgradeDto.isSuccess()) {
             user.addSkin(skinMapper.toSkin(targetSkin));
         }
         userRepository.save(user);
-        var updatedUserDto = userMapper.toUserDto(user); // или обнови текущий вручную
+        var updatedUserDto = userMapper.toUserDto(user);
 
         SecurityContextHolder.getContext().setAuthentication(
                 new UsernamePasswordAuthenticationToken(

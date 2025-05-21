@@ -11,7 +11,9 @@ import java.util.concurrent.ThreadLocalRandom;
 @Service
 @RequiredArgsConstructor
 public class UpgradeChanceService {
-    private double getUpgradeChance(SkinDto currentItem, SkinDto targetItem, double winningChance){
+    private final UserChanceService userChanceService;
+    private double getUpgradeChance(SkinDto currentItem, SkinDto targetItem, long userId){
+        var winningChance = userChanceService.getUserWinningChance(userId);
         var chance = currentItem.getPrice() / targetItem.getPrice();
         if (winningChance > 0.5){
             chance *= 1 + winningChance - 0.5;
@@ -22,8 +24,8 @@ public class UpgradeChanceService {
         return Math.min(1, chance);
     }
 
-    public UpgradeDto performUpgrade(SkinDto currentItem, SkinDto targetItem, double winningChance){
-        var upgradeChance  = getUpgradeChance(currentItem, targetItem, winningChance);
+    public UpgradeDto performUpgrade(SkinDto currentItem, SkinDto targetItem, long userId){
+        var upgradeChance  = getUpgradeChance(currentItem, targetItem, userId);
         var rolledChance = ThreadLocalRandom.current().nextDouble();
         var success = rolledChance <= upgradeChance;
         var delta = ThreadLocalRandom.current().nextDouble(0.02, 0.2);

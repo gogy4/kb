@@ -65,20 +65,5 @@ public class DropServiceTest {
         System.out.println("Skin C выпал " + skinCCount + " раз из " + trials);
     }
 
-    @Test
-    public void testUpgradeRandomSkin() {
-        var skinA = SkinDto.builder()
-                .id(1L)
-                .price(120)
-                .build();
 
-        var skinB = SkinDto.builder()
-                .id(2L)
-                .price(38)
-                .build();
-
-        var chance = upgradeChanceService.performUpgrade(skinB, skinA, 0.5);
-        System.out.println("Skin B " + chance.isSuccess() + " в Skin A с шансом " + chance.getRolledChance() +
-                "\n БЫЛ ШАНС " + chance.getUpgradeChance());
-    }
 }

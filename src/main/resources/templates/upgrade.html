@@ -93,20 +93,15 @@
             background-color: #444;
             cursor: not-allowed;
         }
-
-        /* --- Круг с прогрессом --- */
         #animation-box {
             width: 200px;
             height: 200px;
-            margin: 20px auto 40px auto;
+            margin: 20px auto 40px;
             position: relative;
             border-radius: 50%;
             border: 6px solid #555;
-            background: transparent;
             overflow: hidden;
         }
-
-        /* Прогресс снизу — зеленый прямоугольник, высота зависит от upgradeChance */
         #progress-fill {
             position: absolute;
             bottom: 0;
@@ -114,11 +109,9 @@
             width: 100%;
             background-color: #74ff6b;
             border-radius: 0 0 50% 50%;
-            height: 0%; /* динамически изменяется */
+            height: 0%;
             transition: height 0.5s ease;
         }
-
-        /* Стрелка в центре круга */
         #arrow {
             position: absolute;
             top: 50%;
@@ -128,12 +121,11 @@
             background: #ffd700;
             border-radius: 4px;
             transform-origin: bottom center;
-            transform: translate(-50%, -100%) rotate(0deg);
+            /* Стрелка стартует вниз (180°) */
+            transform: translate(-50%, -100%) rotate(180deg);
+            transition: transform 3s ease-out;
             box-shadow: 0 0 10px #ffd700;
-            transition: transform 2s ease-out;
         }
-
-        /* Стрелка - маленький треугольник сверху стрелки */
         #arrow::before {
             content: "";
             position: absolute;
@@ -143,6 +135,17 @@
             border-left: 10px solid transparent;
             border-right: 10px solid transparent;
             border-bottom: 15px solid #ffd700;
+        }
+        #chance-info {
+            text-align: center;
+            font-size: 18px;
+            margin-top: 30px;
+            line-height: 1.6;
+        }
+        #finalResultText {
+            font-size: 20px;
+            font-weight: bold;
+            margin-top: 10px;
         }
     </style>
 </head>
@@ -154,6 +157,12 @@
     <a href="/profile">Профиль</a>
 </header>
 
+<div id="chance-info">
+    <div id="upgradeChanceText">Шанс: —</div>
+    <div id="rolledChanceText">Выпало: —</div>
+    <div id="finalResultText"></div>
+</div>
+
 <div id="animation-box">
     <div id="progress-fill"></div>
     <div id="arrow"></div>
@@ -161,7 +170,6 @@
 
 <div class="container">
     <h1>Апгрейд скинов</h1>
-
     <div class="skins-wrapper">
         <div class="skins-list" id="userSkins">
             <h2>Ваши скины</h2>
@@ -172,7 +180,6 @@
             <div class="skins-grid" id="upgradeSkinsGrid"></div>
         </div>
     </div>
-
     <div class="center">
         <button id="upgradeButton" disabled>🔁 Апгрейднуть</button>
         <div class="result" id="result"></div>
@@ -182,19 +189,26 @@
 <script>
     let selectedUserSkin = null;
     let selectedUpgradeSkin = null;
+    let lastResult = null;
 
-    const userSkinsGrid = document.getElementById('userSkinsGrid');
+    const userSkinsGrid    = document.getElementById('userSkinsGrid');
     const upgradeSkinsGrid = document.getElementById('upgradeSkinsGrid');
-    const upgradeButton = document.getElementById('upgradeButton');
-    const resultDiv = document.getElementById('result');
-    const progressFill = document.getElementById('progress-fill');
-    const arrow = document.getElementById('arrow');
+    const upgradeButton    = document.getElementById('upgradeButton');
+    const resultDiv        = document.getElementById('result');
+    const progressFill     = document.getElementById('progress-fill');
+    const arrow            = document.getElementById('arrow');
+    const upgradeChanceText= document.getElementById('upgradeChanceText');
+    const rolledChanceText = document.getElementById('rolledChanceText');
+    const finalResultText  = document.getElementById('finalResultText');
 
     function createSkinCard(skin, onClick) {
         const card = document.createElement('div');
         card.className = 'skin-card';
         card.textContent = `${skin.name} (${skin.price}₽)`;
-        card.addEventListener('click', () => onClick(card, skin));
+        card.addEventListener('click', () => {
+            if (!lastResult) resetProgressAndArrow();
+            onClick(card, skin);
+        });
         return card;
     }
 
@@ -207,14 +221,14 @@
                 selectedUserSkin = null;
                 selectedUpgradeSkin = null;
                 upgradeButton.disabled = true;
-                resetProgressAndArrow();
-
+                if (!lastResult) resetProgressAndArrow();
                 data.forEach(skin => {
-                    const card = createSkinCard(skin, (el, selected) => {
+                    const card = createSkinCard(skin, (el, s) => {
                         userSkinsGrid.querySelectorAll('.skin-card').forEach(c => c.classList.remove('selected'));
                         el.classList.add('selected');
-                        selectedUserSkin = selected;
-                        loadUpgradeOptions(selected.id, selected.price);
+                        selectedUserSkin = s;
+                        loadUpgradeOptions(s.id, s.price);
+                        updateChanceTexts();
                     });
                     userSkinsGrid.appendChild(card);
                 });
@@ -228,88 +242,93 @@
                 upgradeSkinsGrid.innerHTML = '';
                 selectedUpgradeSkin = null;
                 upgradeButton.disabled = true;
+                lastResult = null;
                 resetProgressAndArrow();
-
                 data.forEach(skin => {
-                    const card = createSkinCard(skin, (el, selected) => {
+                    const card = createSkinCard(skin, (el, s) => {
                         upgradeSkinsGrid.querySelectorAll('.skin-card').forEach(c => c.classList.remove('selected'));
                         el.classList.add('selected');
-                        selectedUpgradeSkin = selected;
+                        selectedUpgradeSkin = s;
                         upgradeButton.disabled = false;
-
-                        // Обновляем прогресс по upgradeChance для выбранного скина апгрейда
-                        updateProgress(selected.upgradeChance ?? selected.price);
-                        // Если в объекте upgradeChance нет — можно заменить на price или 0-100%
+                        updateChanceTexts();
                     });
                     upgradeSkinsGrid.appendChild(card);
                 });
             });
     }
 
-    function resetProgressAndArrow() {
-        progressFill.style.height = '0%';
-        arrow.style.transform = `translate(-50%, -100%) rotate(0deg)`;
-        resultDiv.innerHTML = '';
+    function updateChanceTexts() {
+        if (lastResult) {
+            upgradeChanceText.textContent = `Шанс: ${(lastResult.upgradeChance*100).toFixed(2)}%`;
+            rolledChanceText.textContent  = `Выпало: ${(lastResult.rolledChance*100).toFixed(2)}%`;
+            finalResultText.textContent   = lastResult.success ? '✅ Успешно выбито!' : '❌ Не удалось выбить';
+            resultDiv.innerHTML = lastResult.success
+                ? `<span style="color:#00e676;">✅ Успех!</span>`
+                : `<span style="color:#ff1744;">❌ Неудача!</span>`;
+        } else if (selectedUserSkin && selectedUpgradeSkin) {
+            const chance = Math.min(selectedUserSkin.price/selectedUpgradeSkin.price,1);
+            progressFill.style.height = (chance*100)+'%';
+            upgradeChanceText.textContent = `Шанс: ${(chance*100).toFixed(2)}%`;
+            rolledChanceText.textContent  = 'Выпало: —';
+            finalResultText.textContent   = '';
+            resultDiv.innerHTML = '';
+            // сброс стрелки вниз
+            arrow.style.transition = 'none';
+            arrow.style.transform  = 'translate(-50%,-100%) rotate(180deg)';
+            requestAnimationFrame(()=> arrow.style.transition='transform 3s ease-out');
+        } else {
+            resetProgressAndArrow();
+        }
     }
 
-    function updateProgress(upgradeChance) {
-        // Ограничим в 0-100
-        let percent = Math.min(Math.max(upgradeChance, 0), 100);
-        progressFill.style.height = percent + '%';
+    function resetProgressAndArrow() {
+        if (lastResult) return;
+        progressFill.style.height       = '0%';
+        upgradeChanceText.textContent   = 'Шанс: —';
+        rolledChanceText.textContent    = 'Выпало: —';
+        finalResultText.textContent     = '';
+        resultDiv.innerHTML             = '';
+        arrow.style.transition = 'none';
+        arrow.style.transform  = 'translate(-50%,-100%) rotate(180deg)';
+        requestAnimationFrame(()=> arrow.style.transition='transform 3s ease-out');
     }
 
     function animateArrowToRolledChance(rolledChance) {
-        // Ограничим в 0-100
-        let percent = Math.min(Math.max(rolledChance, 0), 100);
-        // 100% = 360 градусов
-        let targetDeg = percent * 3.6;
-
-        // Запускаем анимацию вращения стрелки на 3 полных оборота + targetDeg
-        let totalRotation = 360 * 3 + targetDeg;
-
-        arrow.style.transition = 'transform 3s ease-out';
-        arrow.style.transform = `translate(-50%, -100%) rotate(${totalRotation}deg)`;
+        let p = Math.min(Math.max(rolledChance,0),1);
+        // 180° (вниз) → 360° (вверх) по полукругу по часовой
+        let deg = 180 + (p * 180);
+        let spins = 3*360;
+        arrow.style.transform = `translate(-50%,-100%) rotate(${spins+deg}deg)`;
     }
 
-    upgradeButton.addEventListener('click', () => {
-        if (!selectedUserSkin || !selectedUpgradeSkin) return;
-
+    upgradeButton.addEventListener('click', ()=>{
+        if(!selectedUserSkin||!selectedUpgradeSkin) return;
         resultDiv.innerHTML = 'Обработка...';
+        finalResultText.textContent   = '';
+        rolledChanceText.textContent  = 'Выпало: —';
 
-        const requestBody = {
-            currentSkin: selectedUserSkin,
-            newSkin: selectedUpgradeSkin
-        };
-
-        fetch('/skin-upgrade', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(requestBody)
+        fetch('/skin-upgrade',{
+            method:'POST',
+            headers:{'Content-Type':'application/json'},
+            body:JSON.stringify({currentSkin:selectedUserSkin,newSkin:selectedUpgradeSkin})
         })
-            .then(res => res.json())
-            .then(data => {
-                // Обновляем прогресс заполнения по upgradeChance
-                updateProgress(data.upgradeChance * 100); // предполагается, что upgradeChance в формате 0..1, умножаем на 100%
-
-                // Анимируем стрелку по rolledChance
-                animateArrowToRolledChance(data.rolledChance * 100);
-
-                // Через 3 секунды (когда стрелка остановится) показываем результат и обновляем скины
-                setTimeout(() => {
-                    resultDiv.innerHTML = data.success
-                        ? `<span style="color: #00e676;">✅ Успех! (${(data.rolledChance * 100).toFixed(2)}% / ${(data.upgradeChance * 100).toFixed(2)}%)</span>`
-                        : `<span style="color: #ff1744;">❌ Неудача! (${(data.rolledChance * 100).toFixed(2)}% / ${(data.upgradeChance * 100).toFixed(2)}%)</span>`;
+            .then(r=>r.json())
+            .then(data=>{
+                lastResult = data;
+                progressFill.style.height = (data.upgradeChance*100)+'%';
+                animateArrowToRolledChance(data.rolledChance);
+                setTimeout(()=>{
+                    updateChanceTexts();
                     loadUserSkins();
-                }, 3000);
+                },3000);
             })
-            .catch(err => {
-                resultDiv.innerHTML = `<span style="color: orange;">Ошибка при апгрейде</span>`;
-                console.error(err);
+            .catch(e=>{
+                resultDiv.innerHTML = `<span style="color:orange;">Ошибка при апгрейде</span>`;
+                console.error(e);
             });
     });
 
     document.addEventListener('DOMContentLoaded', loadUserSkins);
 </script>
-
 </body>
 </html>
