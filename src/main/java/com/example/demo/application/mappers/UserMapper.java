@@ -21,6 +21,7 @@ public class UserMapper {
                 .tradeLink(user.getTradeLink())
                 .winningChance(user.getWinningChance())
                 .winningBalance(user.getWinningBalance())
+                .balance(user.getBalance())
                 .build();
     }
 }

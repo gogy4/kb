@@ -53,6 +53,7 @@ public class CaseDropService {
         var skin = getDroppedSkin(caseMapper.ToDto(caseBaseInfo), winningChance);
         var user = userRepository.findById(userId).orElseThrow(() -> new RuntimeException("User not found"));;
         user.addSkin(skin);
+        user.setBalance(user.getBalance() - caseBaseInfo.getPrice());
         userRepository.save(user);
         var updatedUserDto = userMapper.toUserDto(user);
 

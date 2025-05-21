@@ -66,11 +66,7 @@
 </head>
 <body>
 
-<header>
-    <a href="/">Кейсы</a>
-    <a href="/upgrades">Апгрейды</a>
-    <a href="/profile">Профиль</a>
-</header>
+<div th:replace="fragments/header :: siteHeader"></div>
 
 <div class="cases">
     <div class="case" th:each="caseObj : ${cases}" th:onclick="'location.href=\'/case/' + ${caseObj.id} + '\''">

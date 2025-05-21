@@ -19,11 +19,18 @@ public class UserProfileController {
     public String profileView(Authentication auth, Model model) {
         var principal = auth.getPrincipal();
 
+        if (auth != null && auth.isAuthenticated() && auth.getPrincipal() instanceof UserDto userDto) {
+            model.addAttribute("isAuthenticated", true);
+            model.addAttribute("user", userDto);
+        }
+        else {
+            model.addAttribute("isAuthenticated", false);
+        }
+
         if (principal instanceof UserDto user) {
             model.addAttribute("user", user);
             return "profile";
         }
-
         return "redirect:/login";
     }
 

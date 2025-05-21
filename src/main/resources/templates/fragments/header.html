@@ -1,0 +1,18 @@
+﻿<!-- fragments/header.html -->
+<div th:fragment="siteHeader">
+    <header>
+        <a href="/">Кейсы</a>
+        <a href="/upgrades">Апгрейды</a>
+
+        <span th:if="${isAuthenticated}">
+            <span style="margin-right: 10px;">
+                Баланс: <strong id="user-balance" th:text="${user.balance}">0.00</strong>₽
+            </span>
+            <a href="/profile">Профиль</a>
+        </span>
+
+        <span th:unless="${isAuthenticated}">
+            <a href="/login">Войти</a>
+        </span>
+    </header>
+</div>

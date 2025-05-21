@@ -24,6 +24,13 @@ public class UpgradeController {
             model.addAttribute("userSkins", null);
             return "upgrade";
         }
+        if (auth != null && auth.isAuthenticated() && auth.getPrincipal() instanceof UserDto userDto) {
+            model.addAttribute("isAuthenticated", true);
+            model.addAttribute("user", userDto);
+        }
+        else {
+            model.addAttribute("isAuthenticated", false);
+        }
         var principal = auth.getPrincipal();
         if (principal instanceof UserDto user) {
             model.addAttribute("userSkins", user == null ? null : user.getSkins());

@@ -1,6 +1,7 @@
 ﻿<!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
+    <meta charset="UTF-8">
     <title th:text="${case.title}">Кейс</title>
     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500&display=swap" rel="stylesheet">
     <style>
@@ -10,7 +11,6 @@
             color: white;
             margin: 0;
         }
-
         header {
             display: flex;
             justify-content: space-around;
@@ -18,7 +18,6 @@
             background-color: #1a1f24;
             border-bottom: 2px solid #222;
         }
-
         header a {
             text-decoration: none;
             color: white;
@@ -26,28 +25,23 @@
             padding: 10px;
             transition: 0.3s;
         }
-
         header a:hover {
             background-color: #333;
             border-radius: 8px;
         }
-
         .container {
             padding: 40px;
             text-align: center;
         }
-
         .case-image {
             max-width: 200px;
             border-radius: 12px;
             box-shadow: 0 0 10px rgba(255,255,255,0.1);
         }
-
         .case-title {
             font-size: 32px;
             margin-top: 20px;
         }
-
         .open-button {
             margin-top: 20px;
             padding: 14px 32px;
@@ -60,112 +54,170 @@
             font-weight: bold;
             transition: 0.3s;
         }
-
         .open-button:disabled {
             background-color: #555;
             cursor: not-allowed;
             opacity: 0.6;
         }
-
         .open-button:hover:not(:disabled) {
             background-color: #9bff91;
         }
 
-        /* рулетка и сетка скинов ... (оставляем без изменений) */
+        /* Рулетка */
+        .roulette-wrapper {
+            position: relative;
+            width: 100%;
+            max-width: 600px;
+            height: 120px;
+            margin: 40px auto;
+            overflow: hidden;
+            border: 4px solid #444;
+            border-radius: 12px;
+            background-color: #1a1f24;
+        }
+        #roulette-strip {
+            display: flex;
+            align-items: center;
+            height: 100%;
+            transform: translateX(0);
+        }
+        .skin-card {
+            flex: 0 0 auto;
+            width: 100px;
+            margin: 0 5px;
+            text-align: center;
+        }
+        .skin-card img {
+            width: 100%;
+            border-radius: 8px;
+            display: block;
+        }
+        /* Стрелка-показыватель внизу, указывающая вверх */
+        .pointer {
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            width: 0;
+            height: 0;
+            border-left: 20px solid transparent;
+            border-right: 20px solid transparent;
+            border-top: 20px solid #ffd700;
+            transform: translateX(-50%);
+            z-index: 10;
+        }
     </style>
 </head>
 <body>
 
-<header>
-    <a href="/">Кейсы</a>
-    <a href="/upgrades">Апгрейды</a>
-    <a href="/profile">Профиль</a>
-</header>
+<!-- Header с добавленным id для баланса -->
+<div th:replace="fragments/header :: siteHeader"></div>
 
 <div class="container">
     <img th:src="@{${case.imageUrl}}" alt="Case Image" class="case-image">
     <div class="case-title" th:text="${case.title}">Название кейса</div>
 
-    <!-- Кнопка открытия кейса: заблокирована, если пользователь неавторизован -->
     <button class="open-button"
             type="button"
             th:data-case-id="${case.id}"
             th:data-case-price="${case.price}"
-            th:disabled="${!isAuthenticated}">
+            th:disabled="${!canOpenCase}">
         <span th:if="${isAuthenticated}">
-            Открыть кейс за <span th:text="${case.price}">0.0</span>₽
+            <span th:if="${canOpenCase}">
+                Открыть кейс за <span th:text="${case.price}">0.0</span>₽
+            </span>
+            <span th:unless="${canOpenCase}">
+                Недостаточно средств, пополните еще на сумму (<span th:text="${needToPay}">0.0</span>₽)
+            </span>
         </span>
         <span th:unless="${isAuthenticated}">
             Войдите, чтобы открыть
         </span>
     </button>
 
-    <!-- Рулетка и сетка скинов (без изменений) -->
     <div class="roulette-wrapper">
+        <div class="pointer"></div>
         <div id="roulette-strip" class="roulette-strip">
-            <div th:each="i : ${#numbers.sequence(1, 30)}">
-                <div th:each="skin : ${skins}" class="skin-card">
-                    <img th:src="@{${skin.imageUrl}}" alt="Skin Image">
-                </div>
+            <!-- Один набор скинов, Thymeleaf -->
+            <div th:each="skin : ${skins}" class="skin-card">
+                <img th:src="@{${skin.imageUrl}}" alt="Skin Image">
             </div>
-        </div>
-    </div>
-
-    <div class="skins-grid">
-        <div th:each="skin : ${skins}" class="skin-card">
-            <img th:src="@{${skin.imageUrl}}" alt="Skin Image">
-            <div class="skin-name" th:text="${skin.name}">Название скина</div>
         </div>
     </div>
 </div>
 
 <script>
-    const openButton = document.querySelector('.open-button');
+    const openButton    = document.querySelector('.open-button');
     const rouletteStrip = document.getElementById('roulette-strip');
+    const wrapper       = rouletteStrip.parentElement;
+    const skins         = Array.from(rouletteStrip.children);
+    const skinCount     = skins.length;
 
-    // Если кнопка заблокирована, не назначаем обработчик
+    function fillStrip() {
+        const visibleWidth = wrapper.clientWidth;
+        let totalWidth = rouletteStrip.scrollWidth;
+        while (totalWidth < visibleWidth * 5) {
+            skins.forEach(card => {
+                const clone = card.cloneNode(true);
+                rouletteStrip.appendChild(clone);
+            });
+            totalWidth = rouletteStrip.scrollWidth;
+        }
+    }
+
+    fillStrip();
+
     if (!openButton.disabled) {
         openButton.addEventListener('click', async () => {
-            const caseId = openButton.getAttribute('data-case-id');
-
+            const caseId = openButton.dataset.caseId;
             openButton.disabled = true;
             openButton.textContent = 'Открываем...';
 
             try {
-                const response = await fetch(`/open-case/${caseId}`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' }
-                });
+                const response = await fetch(`/open-case/${caseId}`, { method: 'POST' });
+                if (response.status === 401) { window.location = '/login'; return; }
+                if (!response.ok) throw new Error('Ошибка');
 
-                if (response.status === 401) {
-                    window.location.href = '/login';
-                    return;
+                const responseData = await response.json();
+
+                // Предполагается, что сервер возвращает объект с полями:
+                // { skin: {...}, newBalance: число }
+                const droppedSkin = responseData.skin || responseData;
+                const balance  = responseData.balance ;
+
+                // Обновление баланса на странице
+                if (balance  !== undefined) {
+                    const balanceElem = document.getElementById('user-balance');
+                    if (balanceElem) {
+                        balanceElem.textContent = balance .toFixed(2);
+                    }
                 }
-                if (!response.ok) throw new Error('Ошибка открытия кейса');
 
-                const droppedSkin = await response.json();
-                const children = [...rouletteStrip.querySelectorAll('.skin-card')];
-                const droppedIndex = children.findIndex(child =>
-                    child.querySelector('img').src.includes(droppedSkin.imageUrl)
+                // Анимация рулетки
+                const allCards = Array.from(rouletteStrip.children);
+                const foundIndex = allCards.findIndex(card =>
+                    card.querySelector('img').src.includes(droppedSkin.imageUrl)
                 );
+                const cardWidth = allCards[0].offsetWidth + 10; // ширина + маргин
+                const visibleWidth = wrapper.clientWidth;
+                const centerOffset = (visibleWidth / 2) - (cardWidth / 2);
 
-                const itemWidth = children[0].offsetWidth + 10;
-                const randomOffset = Math.floor(Math.random() * 15) + 10;
-                const scrollIndex = droppedIndex + randomOffset;
-                const scrollDistance = scrollIndex * itemWidth;
+                const fullLoop = skinCount * cardWidth;
+                const spins = fullLoop * 3;
+                const targetOffset = foundIndex * cardWidth;
+                const finalX = spins + targetOffset - centerOffset;
 
                 rouletteStrip.style.transition = 'transform 4s ease-out';
-                rouletteStrip.style.transform = `translateX(-${scrollDistance}px)`;
+                rouletteStrip.style.transform = `translateX(-${finalX}px)`;
 
                 setTimeout(() => {
-                    openButton.disabled = false;
-                    openButton.textContent = `Открыть кейс за ${openButton.dataset.casePrice}₽`;
                     rouletteStrip.style.transition = 'none';
                     rouletteStrip.style.transform = 'translateX(0)';
+                    openButton.disabled = false;
+                    openButton.textContent = `Открыть кейс за ${openButton.dataset.casePrice}₽`;
                 }, 4500);
 
             } catch (e) {
-                console.error('Ошибка:', e);
+                console.error(e);
                 openButton.disabled = false;
                 openButton.textContent = `Открыть кейс за ${openButton.dataset.casePrice}₽`;
             }

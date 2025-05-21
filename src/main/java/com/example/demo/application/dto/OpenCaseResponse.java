@@ -5,7 +5,7 @@ import lombok.Data;
 
 @Data
 @Builder
-public class SkinUpgradeRequest {
-    private SkinDto currentSkin;
-    private SkinDto newSkin;
+public class OpenCaseResponse {
+    private SkinDto skin;
+    private double balance;
 }

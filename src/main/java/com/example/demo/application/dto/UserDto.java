@@ -15,4 +15,5 @@ public class UserDto {
     private String tradeLink;
     private double winningChance;
     private double winningBalance;
+    private double balance;
 }

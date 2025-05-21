@@ -112,11 +112,7 @@
 </head>
 <body>
 
-<header>
-    <a href="/">Кейсы</a>
-    <a href="/upgrades">Апгрейды</a>
-    <a href="/profile">Профиль</a>
-</header>
+<div th:replace="fragments/header :: siteHeader"></div>
 
 <div class="profile-container" th:if="${user != null}">
     <div class="user-info">
