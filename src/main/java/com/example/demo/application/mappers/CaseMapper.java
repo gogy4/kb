@@ -17,7 +17,7 @@ public class CaseMapper {
                 .id(caseEntity.getId())
                 .price(caseEntity.getPrice())
                 .skins(caseEntity.getSkins().stream()
-                        .map(skinMapper::toSkinBase)
+                        .map(skinMapper::toSkinDto)
                         .collect(Collectors.toList()))
                 .imageUrl(caseEntity.getImageUrl())
                 .title(caseEntity.getName())

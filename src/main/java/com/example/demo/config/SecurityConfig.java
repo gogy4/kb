@@ -1,5 +1,6 @@
 package com.example.demo.config;
 
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -10,6 +11,7 @@ import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 @Configuration
+@RequiredArgsConstructor
 public class SecurityConfig implements WebMvcConfigurer {
 
     @Value("${upload.path}")
@@ -21,9 +23,10 @@ public class SecurityConfig implements WebMvcConfigurer {
                 .csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(auth -> auth
                         // доступ к картинкам разрешаем всем
-                        .requestMatchers("/uploads/case/**").permitAll()
+                        .requestMatchers("/uploads/**").permitAll()
                         // приватные эндпоинты
                         .requestMatchers("/profile").authenticated()
+                        .requestMatchers("/swagger-ui/**", "/v3/api-docs/**", "/swagger-ui.html").hasRole("ADMIN")
                         .requestMatchers("/skin-upgrade").authenticated()
                         .requestMatchers("/get-available-skins-upgrade").authenticated()
                         .requestMatchers("/get-available-multiply-skin-upgrade").authenticated()
@@ -53,7 +56,7 @@ public class SecurityConfig implements WebMvcConfigurer {
     @Override
     public void addResourceHandlers(ResourceHandlerRegistry registry) {
         registry
-                .addResourceHandler("/uploads/case/**")
+                .addResourceHandler("/uploads/**")
                 .addResourceLocations("file:" + uploadDir + "/");
     }
 }

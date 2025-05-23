@@ -47,7 +47,7 @@ public class CaseController {
     public OpenCaseResponse openCase(@PathVariable long caseId, Authentication auth) throws Exception {
         var principal = auth.getPrincipal();
         if (principal instanceof UserDto user) {
-            var skin = caseDropService.dropSkin(caseId, user.getWinningChance(), user.getId());
+            var skin = caseDropService.dropSkin(caseId, user.getId());
             var newBalance = userService.getUserById(user.getId()).getBalance();
             return OpenCaseResponse.builder().balance(newBalance).skin(skin).build();
         }

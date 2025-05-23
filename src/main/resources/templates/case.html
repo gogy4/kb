@@ -1,7 +1,6 @@
 ﻿<!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
-    <meta charset="UTF-8">
     <title th:text="${case.title}">Кейс</title>
     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500&display=swap" rel="stylesheet">
     <style>
@@ -11,13 +10,16 @@
             color: white;
             margin: 0;
         }
+
         header {
             display: flex;
             justify-content: space-around;
+            align-items: center;
             padding: 20px;
             background-color: #1a1f24;
             border-bottom: 2px solid #222;
         }
+
         header a {
             text-decoration: none;
             color: white;
@@ -25,23 +27,34 @@
             padding: 10px;
             transition: 0.3s;
         }
+
         header a:hover {
             background-color: #333;
             border-radius: 8px;
         }
+
+        .balance {
+            font-weight: bold;
+            font-size: 16px;
+            color: #74ff6b;
+        }
+
         .container {
             padding: 40px;
             text-align: center;
         }
+
         .case-image {
             max-width: 200px;
             border-radius: 12px;
             box-shadow: 0 0 10px rgba(255,255,255,0.1);
         }
+
         .case-title {
             font-size: 32px;
             margin-top: 20px;
         }
+
         .open-button {
             margin-top: 20px;
             padding: 14px 32px;
@@ -54,62 +67,63 @@
             font-weight: bold;
             transition: 0.3s;
         }
+
         .open-button:disabled {
             background-color: #555;
             cursor: not-allowed;
             opacity: 0.6;
         }
+
         .open-button:hover:not(:disabled) {
             background-color: #9bff91;
         }
 
-        /* Рулетка */
         .roulette-wrapper {
-            position: relative;
-            width: 100%;
-            max-width: 600px;
-            height: 120px;
-            margin: 40px auto;
+            margin-top: 40px;
             overflow: hidden;
-            border: 4px solid #444;
-            border-radius: 12px;
+            width: 100%;
+            border: 2px solid #333;
+            padding: 10px;
             background-color: #1a1f24;
         }
-        #roulette-strip {
+
+        .roulette-strip {
             display: flex;
-            align-items: center;
-            height: 100%;
-            transform: translateX(0);
+            transition: transform 4s ease-out;
         }
+
         .skin-card {
-            flex: 0 0 auto;
             width: 100px;
             margin: 0 5px;
             text-align: center;
         }
+
         .skin-card img {
             width: 100%;
-            border-radius: 8px;
-            display: block;
+            border-radius: 6px;
         }
-        /* Стрелка-показыватель внизу, указывающая вверх */
-        .pointer {
-            position: absolute;
-            bottom: 0;
-            left: 50%;
-            width: 0;
-            height: 0;
-            border-left: 20px solid transparent;
-            border-right: 20px solid transparent;
-            border-top: 20px solid #ffd700;
-            transform: translateX(-50%);
-            z-index: 10;
+
+        .skins-grid {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            margin-top: 40px;
+            gap: 20px;
+        }
+
+        .skin-name {
+            margin-top: 5px;
+            font-size: 14px;
+        }
+
+        .skin-price {
+            color: #74ff6b;
+            font-size: 12px;
         }
     </style>
 </head>
 <body>
 
-<!-- Header с добавленным id для баланса -->
 <div th:replace="fragments/header :: siteHeader"></div>
 
 <div class="container">
@@ -120,104 +134,89 @@
             type="button"
             th:data-case-id="${case.id}"
             th:data-case-price="${case.price}"
-            th:disabled="${!canOpenCase}">
+            th:disabled="${!isAuthenticated}">
         <span th:if="${isAuthenticated}">
-            <span th:if="${canOpenCase}">
-                Открыть кейс за <span th:text="${case.price}">0.0</span>₽
-            </span>
-            <span th:unless="${canOpenCase}">
-                Недостаточно средств, пополните еще на сумму (<span th:text="${needToPay}">0.0</span>₽)
-            </span>
+            Открыть кейс за <span th:text="${case.price}">0.0</span>₽
         </span>
         <span th:unless="${isAuthenticated}">
             Войдите, чтобы открыть
         </span>
     </button>
 
+    <!-- 🎰 Рулетка -->
     <div class="roulette-wrapper">
-        <div class="pointer"></div>
-        <div id="roulette-strip" class="roulette-strip">
-            <!-- Один набор скинов, Thymeleaf -->
-            <div th:each="skin : ${skins}" class="skin-card">
-                <img th:src="@{${skin.imageUrl}}" alt="Skin Image">
+        <div class="roulette-strip" id="roulette-strip">
+            <div th:each="i : ${#numbers.sequence(1, 30)}">
+                <div th:each="skin : ${skins}" class="skin-card">
+                    <img th:src="@{${skin.imageUrl}}" alt="Skin Image">
+                </div>
             </div>
+        </div>
+    </div>
+
+    <div class="skins-grid">
+        <div th:each="skin : ${skins}" class="skin-card">
+            <img th:src="@{${skin.imageUrl}}" alt="Skin Image">
+            <div class="skin-name" th:text="${skin.name}">Название</div>
+            <div class="skin-price" th:text="${skin.price} + '₽'">Цена</div>
         </div>
     </div>
 </div>
 
 <script>
-    const openButton    = document.querySelector('.open-button');
+    const openButton = document.querySelector('.open-button');
     const rouletteStrip = document.getElementById('roulette-strip');
-    const wrapper       = rouletteStrip.parentElement;
-    const skins         = Array.from(rouletteStrip.children);
-    const skinCount     = skins.length;
-
-    function fillStrip() {
-        const visibleWidth = wrapper.clientWidth;
-        let totalWidth = rouletteStrip.scrollWidth;
-        while (totalWidth < visibleWidth * 5) {
-            skins.forEach(card => {
-                const clone = card.cloneNode(true);
-                rouletteStrip.appendChild(clone);
-            });
-            totalWidth = rouletteStrip.scrollWidth;
-        }
-    }
-
-    fillStrip();
+    const balanceElement = document.getElementById('user-balance');
 
     if (!openButton.disabled) {
         openButton.addEventListener('click', async () => {
-            const caseId = openButton.dataset.caseId;
+            const caseId = openButton.getAttribute('data-case-id');
+
             openButton.disabled = true;
             openButton.textContent = 'Открываем...';
 
             try {
-                const response = await fetch(`/open-case/${caseId}`, { method: 'POST' });
-                if (response.status === 401) { window.location = '/login'; return; }
-                if (!response.ok) throw new Error('Ошибка');
+                const response = await fetch(`/open-case/${caseId}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' }
+                });
 
-                const responseData = await response.json();
-
-                // Предполагается, что сервер возвращает объект с полями:
-                // { skin: {...}, newBalance: число }
-                const droppedSkin = responseData.skin || responseData;
-                const balance  = responseData.balance ;
-
-                // Обновление баланса на странице
-                if (balance  !== undefined) {
-                    const balanceElem = document.getElementById('user-balance');
-                    if (balanceElem) {
-                        balanceElem.textContent = balance .toFixed(2);
-                    }
+                if (response.status === 401) {
+                    window.location.href = '/login';
+                    return;
                 }
 
-                // Анимация рулетки
-                const allCards = Array.from(rouletteStrip.children);
-                const foundIndex = allCards.findIndex(card =>
-                    card.querySelector('img').src.includes(droppedSkin.imageUrl)
-                );
-                const cardWidth = allCards[0].offsetWidth + 10; // ширина + маргин
-                const visibleWidth = wrapper.clientWidth;
-                const centerOffset = (visibleWidth / 2) - (cardWidth / 2);
+                if (!response.ok) throw new Error('Ошибка открытия кейса');
 
-                const fullLoop = skinCount * cardWidth;
-                const spins = fullLoop * 3;
-                const targetOffset = foundIndex * cardWidth;
-                const finalX = spins + targetOffset - centerOffset;
+                const droppedSkin = await response.json();
+
+                // ✅ Обновляем баланс
+                if (balanceElement) {
+                    balanceElement.textContent = droppedSkin.balance.toFixed(2);
+                }
+
+                const children = [...rouletteStrip.querySelectorAll('.skin-card')];
+                const droppedIndex = children.findIndex(child =>
+                    child.querySelector('img').src.includes(droppedSkin.skin.imageUrl)
+                );
+
+                const itemWidth = children[0].offsetWidth + 10;
+                const randomOffset = Math.floor(Math.random() * 15) + 10;
+                const scrollIndex = droppedIndex + randomOffset;
+                const scrollDistance = scrollIndex * itemWidth;
 
                 rouletteStrip.style.transition = 'transform 4s ease-out';
-                rouletteStrip.style.transform = `translateX(-${finalX}px)`;
+                rouletteStrip.style.transform = `translateX(-${scrollDistance}px)`;
 
                 setTimeout(() => {
-                    rouletteStrip.style.transition = 'none';
-                    rouletteStrip.style.transform = 'translateX(0)';
                     openButton.disabled = false;
                     openButton.textContent = `Открыть кейс за ${openButton.dataset.casePrice}₽`;
+                    rouletteStrip.style.transition = 'none';
+                    rouletteStrip.style.transform = 'translateX(0)';
                 }, 4500);
 
             } catch (e) {
-                console.error(e);
+                console.error('Ошибка:', e);
                 openButton.disabled = false;
                 openButton.textContent = `Открыть кейс за ${openButton.dataset.casePrice}₽`;
             }

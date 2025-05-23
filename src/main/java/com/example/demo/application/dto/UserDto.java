@@ -16,4 +16,5 @@ public class UserDto {
     private double winningChance;
     private double winningBalance;
     private double balance;
+    private double lastBalanceDeposit;
 }

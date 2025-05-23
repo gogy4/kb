@@ -1,19 +1,19 @@
 package com.example.demo.controller;
 
+import com.example.demo.application.dto.SkinDto;
 import com.example.demo.application.dto.UserDto;
 import com.example.demo.application.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @Controller
 @RequiredArgsConstructor
 public class UserProfileController {
-
     private final UserService userService;
     @GetMapping("/profile")
     public String profileView(Authentication auth, Model model) {
@@ -43,4 +43,27 @@ public class UserProfileController {
         return "redirect:/profile";
     }
 
+    @PostMapping("/profile/send-all-skins")
+    @ResponseBody
+    public List<SkinDto> sendAllSkins(Authentication auth) {
+        var principal = auth.getPrincipal();
+        if (principal instanceof UserDto user) {
+            userService.sendAllSkins(user.getId());
+            return user.getSkins();
+        }
+
+        return null;
+    }
+
+    @PostMapping("/profile/send-one-skin/{skinId}")
+    @ResponseBody
+    public List<SkinDto> sendOneSkin(Authentication auth, @PathVariable long skinId) {
+        var principal = auth.getPrincipal();
+        if (principal instanceof UserDto user) {
+            userService.sendOneSkin(user.getId(), skinId);
+            return user.getSkins();
+        }
+
+        return null;
+    }
 }

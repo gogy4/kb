@@ -200,13 +200,35 @@
     function createSkinCard(skin, onClick) {
         const card = document.createElement('div');
         card.className = 'skin-card';
-        card.textContent = `${skin.name} (${skin.price}₽)`;
+
+        const img = document.createElement('img');
+        img.src = skin.imageUrl;
+        img.alt = skin.name;
+        img.style.maxWidth = '100%';
+        img.style.borderRadius = '8px';
+        img.style.marginBottom = '10px';
+
+        const name = document.createElement('div');
+        name.textContent = skin.name;
+        name.style.fontSize = '14px';
+        name.style.marginBottom = '4px';
+
+        const price = document.createElement('div');
+        price.textContent = `${skin.price}₽`;
+        price.style.fontWeight = 'bold';
+
+        card.appendChild(img);
+        card.appendChild(name);
+        card.appendChild(price);
+
         card.addEventListener('click', () => {
             if (!lastResult) resetProgressAndArrow();
             onClick(card, skin);
         });
+
         return card;
     }
+
 
     function loadUserSkins() {
         fetch('/get-user-skins')

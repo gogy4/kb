@@ -22,6 +22,7 @@ public class UserMapper {
                 .winningChance(user.getWinningChance())
                 .winningBalance(user.getWinningBalance())
                 .balance(user.getBalance())
+                .lastBalanceDeposit(user.getLastBalanceDeposit())
                 .build();
     }
 }

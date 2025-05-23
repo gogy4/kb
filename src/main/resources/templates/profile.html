@@ -131,6 +131,7 @@
         <div class="skin" th:each="skin : ${user.skins}">
             <img th:src="${skin.imageUrl}" alt="Skin image" />
             <div class="skin-title" th:text="${skin.name}">Название скина</div>
+            <div class="skin-title" th:text="${skin.price}₽">Цена скина</div>
         </div>
     </div>
 </div>

@@ -9,7 +9,6 @@ import java.util.List;
 
 @Repository
 public interface SkinRepository extends JpaRepository<SkinEntity, Long> {
-    List<SkinEntity> findByPriceGreaterThanEqual(double minPrice);
     SkinEntity findByName(String name);
     @Query("SELECT s FROM SkinEntity s WHERE s.price >= :currentSkinPrice * :multiplier")
     List<SkinEntity> findAvailableSkins(@Param("currentSkinPrice") double currentSkinPrice,

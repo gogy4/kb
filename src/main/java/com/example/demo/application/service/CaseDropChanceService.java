@@ -13,8 +13,10 @@ import java.util.Map;
 @RequiredArgsConstructor
 public class CaseDropChanceService {
     private final SkinMapper skinMapper;
-    public Map<SkinEntity, Double> calculateDropChance(CaseDto caseBaseInfo, double winningChance) {
+    private final UserChanceService userChanceService;
+    public Map<SkinEntity, Double> calculateDropChance(CaseDto caseBaseInfo, long userId) {
         var adjustedWeights = new HashMap<SkinEntity, Double>();
+        var winningChance = userChanceService.getUserWinningChance(userId);
         var skins = caseBaseInfo.getSkins();
         var casePrice = caseBaseInfo.getPrice();
 

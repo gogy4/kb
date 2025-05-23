@@ -21,6 +21,7 @@ public class UserEntity {
     private double balance;
     //Может быть и отрицательным, если не везуха
     private double winningBalance;
+    private double lastBalanceDeposit;
     @ManyToMany
     @JoinTable(
             name="user_skin",

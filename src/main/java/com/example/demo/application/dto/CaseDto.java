@@ -10,7 +10,7 @@ import java.util.List;
 public class CaseDto {
     private long id;
     private double price;
-    private List<SkinBaseDto> skins;
+    private List<SkinDto> skins;
     private String imageUrl;
     private String title;
 }

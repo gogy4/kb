@@ -30,9 +30,9 @@ public class AdminCaseService {
     }
 
     public void addNewSkinToCase(String caseName, String skinName){
-        CaseEntity caseEntity = caseRepository.findByName(caseName);
+        var caseEntity = caseRepository.findByName(caseName);
         var caseSkins = caseEntity.getSkins();
-        SkinEntity skinEntity = skinRepository.findByName(skinName);
+        var skinEntity = skinRepository.findByName(skinName);
         caseSkins.add(skinEntity);
         caseEntity.setSkins(caseSkins);
         caseRepository.save(caseEntity);

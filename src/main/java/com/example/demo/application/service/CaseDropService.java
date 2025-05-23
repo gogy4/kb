@@ -28,8 +28,8 @@ public class CaseDropService {
     private final UserMapper userMapper;
 
     //временно будет публичным для тестов
-    public SkinEntity getDroppedSkin(CaseDto caseBaseInfo, double winningChance){
-        var dropChances = caseDropChanceService.calculateDropChance(caseBaseInfo, winningChance);
+    public SkinEntity getDroppedSkin(CaseDto caseBaseInfo, long userId){
+        var dropChances = caseDropChanceService.calculateDropChance(caseBaseInfo, userId);
         var roll = random.nextDouble();
         var cumulativeChance = 0.0;
         for (var entry: dropChances.entrySet()){
@@ -47,10 +47,10 @@ public class CaseDropService {
     }
 
     @Transactional
-    public SkinDto dropSkin(long caseId, double winningChance, long userId){
+    public SkinDto dropSkin(long caseId, long userId){
         var caseBaseInfo = caseRepository.findById(caseId).orElse(null);
         if (caseBaseInfo == null) return null;
-        var skin = getDroppedSkin(caseMapper.ToDto(caseBaseInfo), winningChance);
+        var skin = getDroppedSkin(caseMapper.ToDto(caseBaseInfo), userId);
         var user = userRepository.findById(userId).orElseThrow(() -> new RuntimeException("User not found"));;
         user.addSkin(skin);
         user.setBalance(user.getBalance() - caseBaseInfo.getPrice());

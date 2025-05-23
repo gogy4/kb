@@ -1,10 +1,9 @@
 package com.example.demo.infrastructure.repository;
 
-import com.example.demo.domain.entities.CaseEntity;
+import com.example.demo.domain.entities.AdminEntity;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
-
 @Repository
-public interface CaseRepository extends JpaRepository<CaseEntity, Long> {
-    CaseEntity findByName(String name);
+public interface AdminRepository extends JpaRepository<AdminEntity, Long> {
+    AdminEntity findByEmail(String email);
 }

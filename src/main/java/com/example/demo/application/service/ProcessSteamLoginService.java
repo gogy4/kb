@@ -24,7 +24,6 @@ public class ProcessSteamLoginService {
     private final UserRepository userRepository;
     private final UserMapper userMapper;
 
-    //нужно возваращать пользователя из бд или создавать нового с steamId.
     public UserDto processSteamLogin(HttpServletRequest request) throws Exception{
         var session = request.getSession();
         var discovered = (DiscoveryInformation) session.getAttribute("openid-disc");
