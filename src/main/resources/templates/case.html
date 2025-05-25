@@ -81,7 +81,10 @@
         .roulette-wrapper {
             margin-top: 40px;
             overflow: hidden;
-            width: 100%;
+            width: 1000px;
+            max-width: 100%;
+            margin-left: auto;
+            margin-right: auto;
             border: 2px solid #333;
             padding: 10px;
             background-color: #1a1f24;
@@ -89,11 +92,11 @@
 
         .roulette-strip {
             display: flex;
-            transition: transform 4s ease-out;
+            will-change: transform;
         }
 
         .skin-card {
-            width: 100px;
+            flex: 0 0 100px;
             margin: 0 5px;
             text-align: center;
         }
@@ -101,14 +104,6 @@
         .skin-card img {
             width: 100%;
             border-radius: 6px;
-        }
-
-        .skins-grid {
-            display: flex;
-            flex-wrap: wrap;
-            justify-content: center;
-            margin-top: 40px;
-            gap: 20px;
         }
 
         .skin-name {
@@ -119,6 +114,59 @@
         .skin-price {
             color: #74ff6b;
             font-size: 12px;
+        }
+
+        .result-panel {
+            margin-top: 30px;
+            display: none;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .result-panel.visible {
+            display: flex;
+        }
+
+        .result-buttons {
+            margin-top: 20px;
+            display: flex;
+            gap: 20px;
+        }
+
+        .result-buttons button {
+            padding: 10px 20px;
+            font-weight: bold;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+        }
+
+        .keep-button {
+            background-color: #74ff6b;
+            color: #0c0f13;
+        }
+
+        .sell-button {
+            background-color: #ff6b6b;
+            color: white;
+        }
+
+        .skins-grid {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            margin-top: 50px;
+            gap: 10px;
+        }
+
+        .skins-grid .skin-card {
+            width: 80px;
+            flex: 0 0 auto;
+        }
+
+        .skins-grid .skin-card img {
+            width: 100%;
+            border-radius: 4px;
         }
     </style>
 </head>
@@ -143,14 +191,17 @@
         </span>
     </button>
 
-    <!-- 🎰 Рулетка -->
     <div class="roulette-wrapper">
-        <div class="roulette-strip" id="roulette-strip">
-            <div th:each="i : ${#numbers.sequence(1, 30)}">
-                <div th:each="skin : ${skins}" class="skin-card">
-                    <img th:src="@{${skin.imageUrl}}" alt="Skin Image">
-                </div>
-            </div>
+        <div class="roulette-strip" id="roulette-strip"></div>
+    </div>
+
+    <div class="result-panel" id="result-panel">
+        <h2>Вы получили:</h2>
+        <div id="dropped-skin-name" class="skin-name"></div>
+        <div id="dropped-skin-price" class="skin-price"></div>
+        <div class="result-buttons">
+            <button class="keep-button" id="keep-button">Оставить</button>
+            <button class="sell-button" id="sell-button">Продать</button>
         </div>
     </div>
 
@@ -163,15 +214,39 @@
     </div>
 </div>
 
-<script>
+<script th:inline="javascript">
+    const allSkins = /*[[${skins}]]*/ [];
     const openButton = document.querySelector('.open-button');
     const rouletteStrip = document.getElementById('roulette-strip');
     const balanceElement = document.getElementById('user-balance');
+    const resultPanel = document.getElementById('result-panel');
+    const skinNameElem = document.getElementById('dropped-skin-name');
+    const skinPriceElem = document.getElementById('dropped-skin-price');
+    const keepButton = document.getElementById('keep-button');
+    const sellButton = document.getElementById('sell-button');
+
+    let droppedSkin = null;
+
+    function createSkinCard(skin) {
+        const div = document.createElement('div');
+        div.className = 'skin-card';
+        const img = document.createElement('img');
+        img.src = skin.imageUrl;
+        div.appendChild(img);
+        return div;
+    }
+
+    function populateInitialRoulette() {
+        rouletteStrip.innerHTML = '';
+        const shuffled = allSkins.sort(() => Math.random() - 0.5).slice(0, 10);
+        shuffled.forEach(skin => rouletteStrip.appendChild(createSkinCard(skin)));
+    }
+
+    populateInitialRoulette();
 
     if (!openButton.disabled) {
         openButton.addEventListener('click', async () => {
             const caseId = openButton.getAttribute('data-case-id');
-
             openButton.disabled = true;
             openButton.textContent = 'Открываем...';
 
@@ -188,40 +263,89 @@
 
                 if (!response.ok) throw new Error('Ошибка открытия кейса');
 
-                const droppedSkin = await response.json();
+                const result = await response.json();
+                droppedSkin = result.skin;
 
-                // ✅ Обновляем баланс
                 if (balanceElement) {
-                    balanceElement.textContent = droppedSkin.balance.toFixed(2);
+                    balanceElement.textContent = result.balance.toFixed(2);
                 }
 
-                const children = [...rouletteStrip.querySelectorAll('.skin-card')];
-                const droppedIndex = children.findIndex(child =>
-                    child.querySelector('img').src.includes(droppedSkin.skin.imageUrl)
-                );
+                const pre = 10;
+                const post = 10;
+                const strip = [];
 
-                const itemWidth = children[0].offsetWidth + 10;
-                const randomOffset = Math.floor(Math.random() * 15) + 10;
-                const scrollIndex = droppedIndex + randomOffset;
-                const scrollDistance = scrollIndex * itemWidth;
+                for (let i = 0; i < pre; i++) {
+                    strip.push(allSkins[Math.floor(Math.random() * allSkins.length)]);
+                }
 
-                rouletteStrip.style.transition = 'transform 4s ease-out';
-                rouletteStrip.style.transform = `translateX(-${scrollDistance}px)`;
+                strip.push(droppedSkin);
+
+                for (let i = 0; i < post; i++) {
+                    strip.push(allSkins[Math.floor(Math.random() * allSkins.length)]);
+                }
+
+                rouletteStrip.style.transition = 'none';
+                rouletteStrip.style.transform = 'translateX(0)';
+                rouletteStrip.offsetHeight;
+
+                rouletteStrip.innerHTML = '';
+                strip.forEach(skin => rouletteStrip.appendChild(createSkinCard(skin)));
+
+                await new Promise(r => setTimeout(r, 50));
+
+                const itemWidth = rouletteStrip.querySelector('.skin-card').offsetWidth + 10;
+                const centerIndex = pre;
+                const scroll = centerIndex * itemWidth - (rouletteStrip.offsetWidth / 2) + (itemWidth / 2);
+
+                rouletteStrip.style.transition = 'transform 2.2s ease-out';
+                rouletteStrip.style.transform = `translateX(-${scroll}px)`;
 
                 setTimeout(() => {
-                    openButton.disabled = false;
-                    openButton.textContent = `Открыть кейс за ${openButton.dataset.casePrice}₽`;
-                    rouletteStrip.style.transition = 'none';
-                    rouletteStrip.style.transform = 'translateX(0)';
-                }, 4500);
+                    skinNameElem.textContent = droppedSkin.name;
+                    skinPriceElem.textContent = `${droppedSkin.price.toFixed(2)}₽`;
+                    resultPanel.classList.add('visible');
+                }, 2300);
 
             } catch (e) {
-                console.error('Ошибка:', e);
+                console.error(e);
                 openButton.disabled = false;
                 openButton.textContent = `Открыть кейс за ${openButton.dataset.casePrice}₽`;
             }
         });
     }
+
+    keepButton.addEventListener('click', () => {
+        resultPanel.classList.remove('visible');
+        droppedSkin = null;
+        openButton.disabled = false;
+        openButton.textContent = `Открыть кейс за ${openButton.dataset.casePrice}₽`;
+    });
+
+    sellButton.addEventListener('click', async () => {
+        try {
+            const response = await fetch(`/profile/sell-one-skin/${droppedSkin.id}`, {
+                method: 'POST'
+            });
+
+            if (!response.ok) throw new Error('Ошибка при продаже');
+
+            const result = await response.json();
+
+            if (balanceElement && result.balance !== undefined) {
+                balanceElement.textContent = result.balance.toFixed(2);
+            }
+
+
+        } catch (e) {
+            console.error('Ошибка при продаже:', e);
+        }
+
+        resultPanel.classList.remove('visible');
+        droppedSkin = null;
+        openButton.disabled = false;
+        openButton.textContent = `Открыть кейс за ${openButton.dataset.casePrice}₽`;
+    });
+
 </script>
 
 </body>

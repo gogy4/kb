@@ -33,7 +33,19 @@ public class AdminCaseService {
         var caseEntity = caseRepository.findByName(caseName);
         var caseSkins = caseEntity.getSkins();
         var skinEntity = skinRepository.findByName(skinName);
+        if (caseSkins.contains(skinEntity)){
+            return;
+        }
         caseSkins.add(skinEntity);
+        caseEntity.setSkins(caseSkins);
+        caseRepository.save(caseEntity);
+    }
+
+    public void removeSkinFromCase(String caseName, String skinName){
+        var caseEntity = caseRepository.findByName(caseName);
+        var caseSkins = caseEntity.getSkins();
+        var skinEntity = skinRepository.findByName(skinName);
+        caseSkins.remove(skinEntity);
         caseEntity.setSkins(caseSkins);
         caseRepository.save(caseEntity);
     }

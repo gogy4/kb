@@ -16,4 +16,5 @@ public interface SkinRepository extends JpaRepository<SkinEntity, Long> {
 
     @Query("SELECT s FROM SkinEntity s WHERE s.price >= :currentSkinPrice / 0.75")
     List<SkinEntity> findAvailableSkins(@Param("currentSkinPrice") double currentSkinPrice);
+
 }

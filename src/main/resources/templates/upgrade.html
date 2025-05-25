@@ -51,11 +51,18 @@
             text-align: center;
             margin-bottom: 15px;
         }
-        .skins-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+
+        .paged-container {
+            position: relative;
+            overflow: hidden;
+        }
+
+        .paged-grid {
+            display: flex;
+            transition: transform 0.5s ease;
             gap: 20px;
         }
+
         .skin-card {
             background-color: #1f2630;
             padding: 15px;
@@ -63,6 +70,8 @@
             text-align: center;
             cursor: pointer;
             transition: transform 0.2s, background-color 0.3s;
+            width: 150px;
+            flex: 0 0 auto;
         }
         .skin-card:hover {
             background-color: #2a323e;
@@ -72,6 +81,24 @@
             border: 2px solid #74ff6b;
             background-color: #2e3b49;
         }
+
+        .nav-buttons {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .nav-buttons button {
+            background: #333;
+            color: white;
+            font-size: 20px;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 8px;
+            cursor: pointer;
+        }
+
         .center {
             text-align: center;
             margin-top: 30px;
@@ -121,7 +148,6 @@
             background: #ffd700;
             border-radius: 4px;
             transform-origin: bottom center;
-            /* Стрелка стартует вниз (180°) */
             transform: translate(-50%, -100%) rotate(180deg);
             transition: transform 3s ease-out;
             box-shadow: 0 0 10px #ffd700;
@@ -150,8 +176,8 @@
     </style>
 </head>
 <body>
-
 <div th:replace="fragments/header :: siteHeader"></div>
+
 
 <div id="chance-info">
     <div id="upgradeChanceText">Шанс: —</div>
@@ -167,13 +193,28 @@
 <div class="container">
     <h1>Апгрейд скинов</h1>
     <div class="skins-wrapper">
-        <div class="skins-list" id="userSkins">
+        <!-- USER SKINS -->
+        <div class="skins-list">
             <h2>Ваши скины</h2>
-            <div class="skins-grid" id="userSkinsGrid"></div>
+            <div class="paged-container">
+                <div class="paged-grid" id="userSkinsGrid"></div>
+            </div>
+            <div class="nav-buttons">
+                <button onclick="paginate('userSkins', -1)">←</button>
+                <button onclick="paginate('userSkins', 1)">→</button>
+            </div>
         </div>
-        <div class="skins-list" id="upgradeOptions">
+
+        <!-- UPGRADE SKINS -->
+        <div class="skins-list">
             <h2>Скины для апгрейда</h2>
-            <div class="skins-grid" id="upgradeSkinsGrid"></div>
+            <div class="paged-container">
+                <div class="paged-grid" id="upgradeSkinsGrid"></div>
+            </div>
+            <div class="nav-buttons">
+                <button onclick="paginate('upgradeSkins', -1)">←</button>
+                <button onclick="paginate('upgradeSkins', 1)">→</button>
+            </div>
         </div>
     </div>
     <div class="center">
@@ -186,6 +227,14 @@
     let selectedUserSkin = null;
     let selectedUpgradeSkin = null;
     let lastResult = null;
+    const skinsPerPage = 4;
+
+    let pages = {
+        userSkins: 0,
+        upgradeSkins: 0,
+        userSkinsData: [],
+        upgradeSkinsData: []
+    };
 
     const userSkinsGrid    = document.getElementById('userSkinsGrid');
     const upgradeSkinsGrid = document.getElementById('upgradeSkinsGrid');
@@ -229,27 +278,47 @@
         return card;
     }
 
+    function paginate(type, direction) {
+        const data = pages[type + 'Data'];
+        const maxPage = Math.max(0, Math.ceil(data.length / skinsPerPage) - 1);
+        pages[type] = Math.min(Math.max(0, pages[type] + direction), maxPage);
+        const grid = type === 'userSkins' ? userSkinsGrid : upgradeSkinsGrid;
+        renderPage(grid, data, type);
+    }
+
+    function renderPage(container, data, type) {
+        container.innerHTML = '';
+        const start = pages[type] * skinsPerPage;
+        const items = data.slice(start, start + skinsPerPage);
+        items.forEach(skin => {
+            const card = createSkinCard(skin, (el, s) => {
+                container.querySelectorAll('.skin-card').forEach(c => c.classList.remove('selected'));
+                el.classList.add('selected');
+                if (type === 'userSkins') {
+                    selectedUserSkin = s;
+                    loadUpgradeOptions(s.id, s.price);
+                } else {
+                    selectedUpgradeSkin = s;
+                    upgradeButton.disabled = false;
+                }
+                updateChanceTexts();
+            });
+            container.appendChild(card);
+        });
+    }
 
     function loadUserSkins() {
         fetch('/get-user-skins')
             .then(res => res.json())
             .then(data => {
-                userSkinsGrid.innerHTML = '';
-                upgradeSkinsGrid.innerHTML = '';
+                pages.userSkinsData = data;
+                pages.userSkins = 0;
                 selectedUserSkin = null;
                 selectedUpgradeSkin = null;
                 upgradeButton.disabled = true;
                 if (!lastResult) resetProgressAndArrow();
-                data.forEach(skin => {
-                    const card = createSkinCard(skin, (el, s) => {
-                        userSkinsGrid.querySelectorAll('.skin-card').forEach(c => c.classList.remove('selected'));
-                        el.classList.add('selected');
-                        selectedUserSkin = s;
-                        loadUpgradeOptions(s.id, s.price);
-                        updateChanceTexts();
-                    });
-                    userSkinsGrid.appendChild(card);
-                });
+                renderPage(userSkinsGrid, data, 'userSkins');
+                upgradeSkinsGrid.innerHTML = '';
             });
     }
 
@@ -257,21 +326,13 @@
         fetch(`/get-available-skins-upgrade?id=${id}&price=${price}`)
             .then(res => res.json())
             .then(data => {
-                upgradeSkinsGrid.innerHTML = '';
+                pages.upgradeSkinsData = data;
+                pages.upgradeSkins = 0;
                 selectedUpgradeSkin = null;
                 upgradeButton.disabled = true;
                 lastResult = null;
                 resetProgressAndArrow();
-                data.forEach(skin => {
-                    const card = createSkinCard(skin, (el, s) => {
-                        upgradeSkinsGrid.querySelectorAll('.skin-card').forEach(c => c.classList.remove('selected'));
-                        el.classList.add('selected');
-                        selectedUpgradeSkin = s;
-                        upgradeButton.disabled = false;
-                        updateChanceTexts();
-                    });
-                    upgradeSkinsGrid.appendChild(card);
-                });
+                renderPage(upgradeSkinsGrid, data, 'upgradeSkins');
             });
     }
 
@@ -284,16 +345,15 @@
                 ? `<span style="color:#00e676;">✅ Успех!</span>`
                 : `<span style="color:#ff1744;">❌ Неудача!</span>`;
         } else if (selectedUserSkin && selectedUpgradeSkin) {
-            const chance = Math.min(selectedUserSkin.price/selectedUpgradeSkin.price,1);
-            progressFill.style.height = (chance*100)+'%';
-            upgradeChanceText.textContent = `Шанс: ${(chance*100).toFixed(2)}%`;
-            rolledChanceText.textContent  = 'Выпало: —';
-            finalResultText.textContent   = '';
+            const chance = Math.min(selectedUserSkin.price / selectedUpgradeSkin.price, 1);
+            progressFill.style.height = (chance * 100) + '%';
+            upgradeChanceText.textContent = `Шанс: ${(chance * 100).toFixed(2)}%`;
+            rolledChanceText.textContent = 'Выпало: —';
+            finalResultText.textContent = '';
             resultDiv.innerHTML = '';
-            // сброс стрелки вниз
             arrow.style.transition = 'none';
             arrow.style.transform  = 'translate(-50%,-100%) rotate(180deg)';
-            requestAnimationFrame(()=> arrow.style.transition='transform 3s ease-out');
+            requestAnimationFrame(() => arrow.style.transition = 'transform 3s ease-out');
         } else {
             resetProgressAndArrow();
         }
@@ -301,46 +361,45 @@
 
     function resetProgressAndArrow() {
         if (lastResult) return;
-        progressFill.style.height       = '0%';
-        upgradeChanceText.textContent   = 'Шанс: —';
-        rolledChanceText.textContent    = 'Выпало: —';
-        finalResultText.textContent     = '';
-        resultDiv.innerHTML             = '';
+        progressFill.style.height = '0%';
+        upgradeChanceText.textContent = 'Шанс: —';
+        rolledChanceText.textContent = 'Выпало: —';
+        finalResultText.textContent = '';
+        resultDiv.innerHTML = '';
         arrow.style.transition = 'none';
-        arrow.style.transform  = 'translate(-50%,-100%) rotate(180deg)';
-        requestAnimationFrame(()=> arrow.style.transition='transform 3s ease-out');
+        arrow.style.transform = 'translate(-50%,-100%) rotate(180deg)';
+        requestAnimationFrame(() => arrow.style.transition = 'transform 3s ease-out');
     }
 
     function animateArrowToRolledChance(rolledChance) {
-        let p = Math.min(Math.max(rolledChance,0),1);
-        // 180° (вниз) → 360° (вверх) по полукругу по часовой
+        let p = Math.min(Math.max(rolledChance, 0), 1);
         let deg = 180 + (p * 180);
-        let spins = 3*360;
-        arrow.style.transform = `translate(-50%,-100%) rotate(${spins+deg}deg)`;
+        let spins = 3 * 360;
+        arrow.style.transform = `translate(-50%,-100%) rotate(${spins + deg}deg)`;
     }
 
-    upgradeButton.addEventListener('click', ()=>{
-        if(!selectedUserSkin||!selectedUpgradeSkin) return;
+    upgradeButton.addEventListener('click', () => {
+        if (!selectedUserSkin || !selectedUpgradeSkin) return;
         resultDiv.innerHTML = 'Обработка...';
-        finalResultText.textContent   = '';
-        rolledChanceText.textContent  = 'Выпало: —';
+        finalResultText.textContent = '';
+        rolledChanceText.textContent = 'Выпало: —';
 
-        fetch('/skin-upgrade',{
-            method:'POST',
-            headers:{'Content-Type':'application/json'},
-            body:JSON.stringify({currentSkin:selectedUserSkin,newSkin:selectedUpgradeSkin})
+        fetch('/skin-upgrade', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ currentSkin: selectedUserSkin, newSkin: selectedUpgradeSkin })
         })
-            .then(r=>r.json())
-            .then(data=>{
+            .then(r => r.json())
+            .then(data => {
                 lastResult = data;
-                progressFill.style.height = (data.upgradeChance*100)+'%';
+                progressFill.style.height = (data.upgradeChance * 100) + '%';
                 animateArrowToRolledChance(data.rolledChance);
-                setTimeout(()=>{
+                setTimeout(() => {
                     updateChanceTexts();
                     loadUserSkins();
-                },3000);
+                }, 3000);
             })
-            .catch(e=>{
+            .catch(e => {
                 resultDiv.innerHTML = `<span style="color:orange;">Ошибка при апгрейде</span>`;
                 console.error(e);
             });

@@ -36,9 +36,15 @@ public class AdminCaseController {
         return adminCaseService.addNewCase(request.getName(), request.getPrice(), avatarUrl);
     }
 
+    @PostMapping("remove-skin-from-case")
+    public String removeSkin(@RequestParam String caseName, @RequestParam String skinName) throws Exception {
+        adminCaseService.removeSkinFromCase(caseName, skinName);
+        return "Скин " + skinName + " удален из кейса " + caseName;
+    }
+
     @PostMapping("add-skin-to-case")
     public String addSkinToCase(@RequestParam String caseName, @RequestParam String skinName){
         adminCaseService.addNewSkinToCase(caseName, skinName);
-        return "Скин " + skinName + " добавлен в кейс" + caseName;
+        return "Скин " + skinName + " добавлен в кейс " + caseName;
     }
 }

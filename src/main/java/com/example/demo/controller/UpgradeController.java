@@ -74,10 +74,11 @@ public class UpgradeController {
 
     @GetMapping("get-available-skins-upgrade")
     @ResponseBody
-    public List<SkinDto> getAvailableSkinUpgrade(Authentication auth, SkinDto skinDto) {
-        var skins = upgradeService.getAvailableSkins(skinDto);
-        return skins;
+    public List<SkinDto> getAvailableSkinUpgrade(@ModelAttribute SkinDto skinDto) {
+        var a = upgradeService.getAvailableSkins(skinDto);
+        return upgradeService.getAvailableSkins(skinDto);
     }
+
 
     @GetMapping("get-available-multiply-skin-upgrade")
     @ResponseBody

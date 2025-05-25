@@ -1,6 +1,8 @@
 package com.example.demo.application.service;
 
+import com.example.demo.application.dto.SkinDto;
 import com.example.demo.application.dto.UserDto;
+import com.example.demo.application.mappers.SkinMapper;
 import com.example.demo.application.mappers.UserMapper;
 import com.example.demo.domain.entities.SkinEntity;
 import com.example.demo.domain.entities.UserEntity;
@@ -12,6 +14,8 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
+
 @Service
 @RequiredArgsConstructor
 public class UserService {
@@ -19,6 +23,8 @@ public class UserService {
     private final UserMapper userMapper;
     private final SkinRepository skinRepository;
     private final UserChanceService userChanceService;
+    private final SkinMapper skinMapper;
+
     @Transactional
     public void saveTradeLink(UserDto userDto, String url) {
         var user = userRepository.findById(userDto.getId()).get();
@@ -45,6 +51,45 @@ public class UserService {
                 )
         );
 
+        return updatedUserDto;
+    }
+
+    @Transactional
+    public UserDto sellAllSkins(long userId) {
+        var user = userRepository.findById(userId).get();
+        var skinPrices = user.getSkins()
+                .stream()
+                .mapToDouble(SkinEntity::getPrice)
+                .sum();
+        user.setSkins(new ArrayList<>());
+        user.setBalance(user.getBalance() + skinPrices);
+        userRepository.save(user);
+        var updatedUserDto = userMapper.toUserDto(user);
+        SecurityContextHolder.getContext().setAuthentication(
+                new UsernamePasswordAuthenticationToken(
+                        updatedUserDto,
+                        null,
+                        SecurityContextHolder.getContext().getAuthentication().getAuthorities()
+                )
+        );
+        return updatedUserDto;
+    }
+
+    @Transactional
+    public UserDto sellOneSkin(long userId, long skinId) {
+        var user = userRepository.findById(userId).get();
+        var skin = skinRepository.findById(skinId).get();
+        user.removeSkin(skin);
+        user.setBalance(user.getBalance() + skin.getPrice());
+        userRepository.save(user);
+        var updatedUserDto = userMapper.toUserDto(user);
+        SecurityContextHolder.getContext().setAuthentication(
+                new UsernamePasswordAuthenticationToken(
+                        updatedUserDto,
+                        null,
+                        SecurityContextHolder.getContext().getAuthentication().getAuthorities()
+                )
+        );
         return updatedUserDto;
     }
 
@@ -81,9 +126,17 @@ public class UserService {
     public UserDto sendAllSkins(long userId){
         var user = userRepository.findById(userId).get();
         recalculateWinningBalance(user);
-        user.setSkins(null);
+        user.setSkins(new ArrayList<>());
         userRepository.save(user);
-        return userMapper.toUserDto(user);
+        var updatedUserDto = userMapper.toUserDto(user);
+        SecurityContextHolder.getContext().setAuthentication(
+                new UsernamePasswordAuthenticationToken(
+                        updatedUserDto,
+                        null,
+                        SecurityContextHolder.getContext().getAuthentication().getAuthorities()
+                )
+        );
+        return updatedUserDto;
     }
 
     @Transactional
@@ -93,6 +146,14 @@ public class UserService {
         recalculateWinningBalance(user);
         user.removeSkin(skin);
         userRepository.save(user);
-        return userMapper.toUserDto(user);
+        var updatedUserDto = userMapper.toUserDto(user);
+        SecurityContextHolder.getContext().setAuthentication(
+                new UsernamePasswordAuthenticationToken(
+                        updatedUserDto,
+                        null,
+                        SecurityContextHolder.getContext().getAuthentication().getAuthorities()
+                )
+        );
+        return updatedUserDto;
     }
 }

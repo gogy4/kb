@@ -1,10 +1,14 @@
 package com.example.demo.controller;
 
+import com.example.demo.application.dto.SellSkinResponse;
 import com.example.demo.application.dto.SkinDto;
 import com.example.demo.application.dto.UserDto;
+import com.example.demo.application.mappers.UserMapper;
 import com.example.demo.application.service.UserService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -48,8 +52,7 @@ public class UserProfileController {
     public List<SkinDto> sendAllSkins(Authentication auth) {
         var principal = auth.getPrincipal();
         if (principal instanceof UserDto user) {
-            userService.sendAllSkins(user.getId());
-            return user.getSkins();
+            return userService.sendAllSkins(user.getId()).getSkins();
         }
 
         return null;
@@ -60,8 +63,38 @@ public class UserProfileController {
     public List<SkinDto> sendOneSkin(Authentication auth, @PathVariable long skinId) {
         var principal = auth.getPrincipal();
         if (principal instanceof UserDto user) {
-            userService.sendOneSkin(user.getId(), skinId);
-            return user.getSkins();
+            return userService.sendOneSkin(user.getId(), skinId).getSkins();
+        }
+
+        return null;
+    }
+
+    @PostMapping("/profile/sell-all-skins")
+    @ResponseBody
+    public SellSkinResponse  sellAllSkins(Authentication auth) {
+        var principal = auth.getPrincipal();
+        if (principal instanceof UserDto user) {
+            var updatedUser = userService.sellAllSkins(user.getId());
+            return SellSkinResponse.builder()
+                    .user(updatedUser)
+                    .balance(updatedUser.getBalance())
+                    .skins(updatedUser.getSkins())
+                    .build();        }
+
+        return null;
+    }
+
+    @PostMapping("/profile/sell-one-skin/{skinId}")
+    @ResponseBody
+    public SellSkinResponse sellOneSkin(Authentication auth, @PathVariable long skinId) {
+        var principal = auth.getPrincipal();
+        if (principal instanceof UserDto user) {
+            var updatedUser = userService.sellOneSkin(user.getId(), skinId);
+            return SellSkinResponse.builder()
+                    .user(updatedUser)
+                    .balance(updatedUser.getBalance())
+                    .skins(updatedUser.getSkins())
+                    .build();
         }
 
         return null;
