@@ -20,7 +20,6 @@ public class SteamLoginController {
     }
 
     @GetMapping("login/return")
-    //доработать редирект на другую страницу
     public String processSteamReturn(HttpServletRequest request) throws Exception{
         var user = processSteamService.processSteamLogin(request);
         if (user != null){

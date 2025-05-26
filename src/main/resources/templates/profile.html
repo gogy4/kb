@@ -173,9 +173,7 @@
             });
         }
 
-        // Функция обновляет UI в зависимости от структуры ответа
         function updateUserUI(response) {
-            // Если есть баланс и скины — это ответ от sell методов
             if (response.balance !== undefined && response.skins !== undefined) {
                 document.getElementById('user-balance').textContent = response.balance;
                 const headerBalance = document.getElementById('user-balance-header');
@@ -184,7 +182,6 @@
                 }
                 updateSkinsUI(response.skins);
             }
-            // Если просто массив — ответ от send методов (только скины)
             else if (Array.isArray(response)) {
                 updateSkinsUI(response);
             }
@@ -221,7 +218,6 @@
 </head>
 <body>
 
-<!-- Подключаем header с id для баланса в хедере -->
 <div th:replace="fragments/header :: siteHeader"></div>
 
 <div class="profile-container" th:if="${user != null}">

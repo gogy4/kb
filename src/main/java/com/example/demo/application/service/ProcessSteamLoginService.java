@@ -6,14 +6,18 @@ import com.example.demo.domain.entities.UserEntity;
 import com.example.demo.infrastructure.repository.UserRepository;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
+import org.json.JSONObject;
 import org.openid4java.consumer.ConsumerManager;
 import org.openid4java.discovery.DiscoveryInformation;
 import org.openid4java.message.ParameterList;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.context.SecurityContextImpl;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestTemplate;
+import org.springframework.web.util.UriComponentsBuilder;
 
 import java.util.List;
 
@@ -23,6 +27,8 @@ import java.util.List;
 public class ProcessSteamLoginService {
     private final UserRepository userRepository;
     private final UserMapper userMapper;
+    @Value("${steam.api.key}")
+    private String steamApiKey;
 
     public UserDto processSteamLogin(HttpServletRequest request) throws Exception{
         var session = request.getSession();
@@ -38,8 +44,7 @@ public class ProcessSteamLoginService {
         var verified = verification.getVerifiedId();
         if (verified != null){
             var identity = verified.getIdentifier();
-            var steamIdStr = identity.substring(0, identity.length() - 1)
-                    .substring(identity.lastIndexOf("/") + 1);
+            var steamIdStr = identity.substring(identity.lastIndexOf("/") + 1);
             var steamId = Long.parseLong(steamIdStr);
             var user = userRepository.findById(steamId).orElse(null);
             session.setAttribute("steamId", steamId);
@@ -48,6 +53,7 @@ public class ProcessSteamLoginService {
                 finalUser = user;
             } else {
                 finalUser = new UserEntity(steamId);
+                enrichUserFromSteam(finalUser);
                 userRepository.save(finalUser);
             }
             var userDto = userMapper.toUserDto(finalUser);
@@ -59,5 +65,32 @@ public class ProcessSteamLoginService {
         }
 
         return null;
+    }
+
+    //методы для получения никнейма и аватарки пользователя из стима с помощью апи
+
+    private String getSteamProfileJson(long steamId) {
+        var url = UriComponentsBuilder.fromHttpUrl("https://api.steampowered.com/ISteamUser/GetPlayerSummaries/v2/")
+                .queryParam("key", steamApiKey)
+                .queryParam("steamids", steamId)
+                .toUriString();
+
+        var restTemplate = new RestTemplate();
+        return restTemplate.getForObject(url, String.class);
+    }
+
+    private void enrichUserFromSteam(UserEntity user) {
+        try {
+            var json = getSteamProfileJson(user.getId());
+            var obj = new JSONObject(json)
+                    .getJSONObject("response")
+                    .getJSONArray("players")
+                    .getJSONObject(0);
+
+            user.setUserName(obj.getString("personaname"));
+            user.setAvatarUrl(obj.getString("avatarfull"));
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 }

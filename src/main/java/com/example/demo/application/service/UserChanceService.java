@@ -20,6 +20,7 @@ public class UserChanceService {
     private final UserRepository userRepository;
     private final UserMapper userMapper;
 
+    //перерасчет winningchance
     public double getUserWinningChance(long userId){
         var user = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("User not found"));

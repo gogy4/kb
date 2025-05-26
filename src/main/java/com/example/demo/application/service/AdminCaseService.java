@@ -3,7 +3,6 @@ package com.example.demo.application.service;
 import com.example.demo.application.dto.CaseDto;
 import com.example.demo.application.mappers.CaseMapper;
 import com.example.demo.domain.entities.CaseEntity;
-import com.example.demo.domain.entities.SkinEntity;
 import com.example.demo.infrastructure.repository.CaseRepository;
 import com.example.demo.infrastructure.repository.SkinRepository;
 import lombok.RequiredArgsConstructor;
